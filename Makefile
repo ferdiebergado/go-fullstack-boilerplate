@@ -41,10 +41,13 @@ drop:
 force:
 	migrate -database $(DATABASE_URL) -path $(MIGRATIONS_DIR) force $(version)
 
+test:
+	go test -race ./...
+
 css-watch:
 	esbuild ./web/app/css/styles.css --bundle --outdir=./web/static/css --watch
 
 js-watch:
 	esbuild ./web/app/js/**/*.js --bundle --outdir=./web/static/js --sourcemap --target=es6 --splitting --format=esm --watch
 
-.PHONY: db psql migrate rollback
+.PHONY: db psql migrate rollback drop test

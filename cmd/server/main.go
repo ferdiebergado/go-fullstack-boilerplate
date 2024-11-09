@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"io"
@@ -16,48 +17,39 @@ import (
 	router "github.com/ferdiebergado/go-express"
 	"github.com/ferdiebergado/go-express/middleware"
 	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/app"
-	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/db"
+	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/logger"
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
 const (
 	serverShutdownTimeout = 10
+	serverReadTimeout     = 10
+	serverWriteTimeout    = 10
+	serverIdleTimeout     = 60
 )
 
 func run(ctx context.Context, _ []string, getenv func(string) string, _ io.Reader, _, stderr io.Writer) error {
+	// Initialize logger
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
-
 	slog.SetDefault(logger)
 
-	db.Connect(ctx, getenv("DATABASE_URL"))
+	// Connect to the database
+	db := Connect(ctx, getenv("DATABASE_URL"))
+	defer db.Close()
 
+	// Handle OS interrupt signals
 	ctx, cancel := signal.NotifyContext(ctx, os.Interrupt)
 	defer cancel()
 
-	readTimeout, err := strconv.Atoi(getenv("SERVER_READ_TIMEOUT"))
+	// Parse server timeouts
+	readTimeout := parseTimeout(getenv("SERVER_READ_TIMEOUT"), serverReadTimeout)
+	writeTimeout := parseTimeout(getenv("SERVER_WRITE_TIMEOUT"), serverWriteTimeout)
+	idleTimeout := parseTimeout(getenv("SERVER_IDLE_TIMEOUT"), serverIdleTimeout)
 
-	if err != nil {
-		readTimeout = 10
-	}
+	// Initialize router and add middlewares
+	router := setupRouter()
 
-	writeTimeout, err := strconv.Atoi(getenv("SERVER_WRITE_TIMEOUT"))
-
-	if err != nil {
-		writeTimeout = 10
-	}
-
-	idleTimeout, err := strconv.Atoi(getenv("SERVER_IDLE_TIMEOUT"))
-
-	if err != nil {
-		idleTimeout = 60
-	}
-
-	router := router.NewRouter()
-	router.Use(middleware.RequestLogger)
-	router.Use(middleware.PanicRecovery)
-
-	app.AddRoutes(router)
-
+	// Configure HTTP server
 	httpServer := &http.Server{
 		Addr:         ":" + getenv("PORT"),
 		Handler:      router,
@@ -66,29 +58,55 @@ func run(ctx context.Context, _ []string, getenv func(string) string, _ io.Reade
 		IdleTimeout:  time.Duration(idleTimeout * int(time.Second)),
 	}
 
-	go func() {
-		fmt.Printf("HTTP Server listening on %s...\n", httpServer.Addr)
-		if err := httpServer.ListenAndServe(); err != nil && errors.Is(err, http.ErrServerClosed) {
-			fmt.Fprintf(stderr, "error listening and serving: %s\n", err)
-		}
-	}()
+	// Start the server in a goroutine
+	go startServer(httpServer, stderr)
 
+	// Wait for shutdown
+	waitForShutdown(ctx, httpServer, stderr)
+
+	return nil
+}
+
+// Helper to parse timeout values with a default
+func parseTimeout(value string, defaultValue int) int {
+	timeout, err := strconv.Atoi(value)
+	if err != nil {
+		return defaultValue
+	}
+	return timeout
+}
+
+// Setup router with middlewares
+func setupRouter() *router.Router {
+	r := router.NewRouter()
+	r.Use(middleware.RequestLogger)
+	r.Use(middleware.PanicRecovery)
+	app.AddRoutes(r)
+	return r
+}
+
+// Start the HTTP server and handle errors
+func startServer(httpServer *http.Server, stderr io.Writer) {
+	fmt.Printf("HTTP Server listening on %s...\n", httpServer.Addr)
+	if err := httpServer.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+		fmt.Fprintf(stderr, "error listening and serving: %s\n", err)
+	}
+}
+
+// Wait for context cancellation and gracefully shut down the server
+func waitForShutdown(ctx context.Context, httpServer *http.Server, stderr io.Writer) {
 	var wg sync.WaitGroup
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
 		<-ctx.Done()
-		shutdownCtx := context.Background()
-		shutdownCtx, cancel := context.WithTimeout(shutdownCtx, serverShutdownTimeout*time.Second)
+		shutdownCtx, cancel := context.WithTimeout(context.Background(), serverShutdownTimeout*time.Second)
 		defer cancel()
 		if err := httpServer.Shutdown(shutdownCtx); err != nil {
 			fmt.Fprintf(stderr, "error shutting down http server: %s\n", err)
 		}
 	}()
-
 	wg.Wait()
-
-	return nil
 }
 
 func main() {
@@ -97,4 +115,17 @@ func main() {
 		fmt.Fprintf(os.Stderr, "%s\n", err)
 		os.Exit(1)
 	}
+}
+
+func Connect(ctx context.Context, dsn string) *sql.DB {
+	db, err := sql.Open("pgx", dsn)
+	if err != nil {
+		logger.Fatal("Unable to connect to database", err)
+	}
+
+	if err := db.PingContext(ctx); err != nil {
+		logger.Fatal("Unable to ping the database", err)
+	}
+
+	return db
 }

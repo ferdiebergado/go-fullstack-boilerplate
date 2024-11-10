@@ -1,0 +1,29 @@
+-- Don't log these commands at the beginning of the file
+\set QUIET 1
+--Automatically format expanded display for wide columns
+\x auto
+-- Clean border around output of queries
+\pset border 2
+--Outline table borders and separators using Unicode characters
+\pset linestyle unicode
+-- Always show query time
+\timing
+-- Set Null char output to differentiate it from empty string
+\pset null '👻'
+-- Number of commands to save in history
+\set HISTSIZE 2000
+-- output any SQL run by psql slash commands
+\set ECHO_HIDDEN on
+-- Have psql echo back queries
+\set ECHO queries
+-- Create a prompt with host, database name, date, and time
+\set PROMPT1 '%m@%/ %`date "+%Y-%m-%d %H:%M:%S"`> '
+-- queries
+\set long_running 'SELECT pid, now() - pg_stat_activity.xact_start AS duration, query, state FROM pg_stat_activity WHERE (now() - pg_stat_activity.xact_start) > interval ''5 minutes'' ORDER by 2 DESC;'
+\set cache_hit 'SELECT ''index hit rate'' AS name, (sum(idx_blks_hit)) / nullif(sum(idx_blks_hit + idx_blks_read),0) AS ratio FROM pg_statio_user_indexes UNION ALL SELECT ''table hit rate'' AS name, sum(heap_blks_hit) / nullif(sum(heap_blks_hit) + sum(heap_blks_read),0) AS ratio FROM pg_statio_user_tables;'
+\set unused_indexes 'SELECT schemaname || ''.'' || relname AS table, indexrelname AS index, pg_size_pretty(pg_relation_size(i.indexrelid)) AS index_size, idx_scan as index_scans FROM pg_stat_user_indexes ui JOIN pg_index i ON ui.indexrelid = i.indexrelid WHERE NOT indisunique AND idx_scan < 50 AND pg_relation_size(relid) > 5 * 8192 ORDER BY pg_relation_size(i.indexrelid) / nullif(idx_scan, 0) DESC NULLS FIRST, pg_relation_size(i.indexrelid) DESC;'
+\set table_sizes 'SELECT c.relname AS name, pg_size_pretty(pg_table_size(c.oid)) AS size FROM pg_class c LEFT JOIN pg_namespace n ON (n.oid = c.relnamespace) WHERE n.nspname NOT IN (''pg_catalog'', ''information_schema'') AND n.nspname !~ ''^pg_toast'' AND c.relkind=''r'' ORDER BY pg_table_size(c.oid) DESC;'
+\set users 'SELECT usename, state, count(1) cnt FROM pg_stat_activity WHERE usename is not null GROUP BY usename, state ORDER BY usename, state;'
+
+-- Reset command logging at the end of the file
+\set QUIET 0 

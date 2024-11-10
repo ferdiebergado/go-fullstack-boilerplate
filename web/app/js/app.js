@@ -1,8 +1,7 @@
 // @ts-check
 'use strict';
 
-const footer = document.getElementsByTagName('footer')[0];
-
+const footer = document.querySelector('footer');
 const year = new Date().getFullYear();
 
-footer.innerHTML = `&copy; ${year}`;
+footer && (footer.innerHTML = `<span>&copy; ${year}</span>`);

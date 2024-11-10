@@ -51,7 +51,7 @@ func run(ctx context.Context, _ []string, getenv func(string) string, _ io.Reade
 
 	// Configure HTTP server
 	httpServer := &http.Server{
-		Addr:         ":" + getenv("PORT"),
+		Addr:         "localhost:" + getenv("PORT"),
 		Handler:      router,
 		ReadTimeout:  time.Duration(readTimeout * int(time.Second)),
 		WriteTimeout: time.Duration(writeTimeout * int(time.Second)),

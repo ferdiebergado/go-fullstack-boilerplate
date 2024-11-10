@@ -1,11 +1,14 @@
-CONTAINER_NAME := postgres
-CONTAINER_IMAGE := postgres:17.0-alpine3.20
+DB_CONTAINER := postgres
+DB_IMAGE := postgres:17.0-alpine3.20
+PROXY_CONTAINER := nginx_reverse_proxy
+PROXY_IMAGE := nginx:1.27.2-alpine3.20
 MIGRATIONS_DIR := ./internal/pkg/db/migrations
-CONTAINER := docker
 
 # Load environment variables from .env
 include .env
 export $(shell sed 's/=.*//' .env)
+
+all: db proxy dev
 
 install:
 	which migrate || go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
@@ -18,13 +21,19 @@ dev:
 	air
 
 db:
-	$(CONTAINER) run -d --rm --network host --name $(CONTAINER_NAME) -e POSTGRES_PASSWORD="$(DB_PASS)" \
+	$(CONTAINER) run -d --rm --network host --name $(DB_CONTAINER) -e POSTGRES_PASSWORD="$(DB_PASS)" \
 		-v ./configs/postgresql.conf:/etc/postgresql/postgresql.conf:Z \
 		-v ./configs/psqlrc:/root/.psqlrc:Z \
-		$(CONTAINER_IMAGE) -c 'config_file=/etc/postgresql/postgresql.conf'
+		$(DB_IMAGE) -c 'config_file=/etc/postgresql/postgresql.conf'
+
+proxy:
+	$(CONTAINER) run -d --rm --network host --name $(PROXY_CONTAINER) \
+		-v ./configs/nginx.conf:/etc/nginx/nginx.conf:Z \
+		-v ./web/static:/usr/share/nginx/html:Z \
+		$(PROXY_IMAGE)
 
 psql:
-	$(CONTAINER) exec -ti $(CONTAINER_NAME) psql -U $(DB_USER) $(DB_NAME)
+	$(CONTAINER) exec -ti $(DB_CONTAINER) psql -U $(DB_USER) $(DB_NAME)
 
 migration:
 	migrate create -ext sql -dir $(MIGRATIONS_DIR) -seq $(name)
@@ -50,4 +59,4 @@ css-watch:
 js-watch:
 	esbuild ./web/app/js/**/*.js --bundle --outdir=./web/static/js --sourcemap --target=es6 --splitting --format=esm --watch
 
-.PHONY: db psql migrate rollback drop test
+.PHONY: install dev db psql proxy migrate rollback drop test

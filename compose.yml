@@ -1,0 +1,49 @@
+version: "3.8"
+
+services:
+  # Go Web App Service
+  app:
+    build:
+      context: .
+    container_name: go_web_app
+    depends_on:
+      - db
+    environment:
+      - PORT=${PORT}
+      - DATABASE_URL=${DATABASE_URL}
+    ports:
+      - "8888:8888"
+    volumes:
+      - .:/app:Z
+    restart: always
+
+  # PostgreSQL Database Service
+  db:
+    image: postgres:17.0-alpine3.20
+    container_name: postgres_db
+    shm_size: 128mb
+    environment:
+      POSTGRES_PASSWORD: ${DB_PASS}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./configs/postgresql.conf:/etc/postgresql/postgresql.conf:Z
+      - ./configs/psqlrc:/root/.psqlrc:Z
+    ports:
+      - "5432:5432"
+    restart: always
+
+  # Nginx Reverse Proxy Service
+  nginx:
+    image: nginx:1.27.2-alpine3.20
+    container_name: nginx_proxy
+    depends_on:
+      - app
+    volumes:
+      - ./configs/nginx.conf:/etc/nginx/nginx.conf:Z
+      - ./web/static:/usr/share/nginx/html:Z
+    ports:
+      - "8080:8080"
+    restart: always
+
+volumes:
+  postgres_data:

@@ -15,7 +15,7 @@ install:
 	which air || go install github.com/air-verse/air@v1.52.2
 
 run:
-	go run ./...
+	go run ./... || true
 
 dev:
 	air
@@ -59,4 +59,4 @@ css-watch:
 js-watch:
 	esbuild ./web/app/js/**/*.js --bundle --outdir=./web/static/js --sourcemap --target=es6 --splitting --format=esm --watch
 
-.PHONY: install dev db psql proxy migrate rollback drop test
+.PHONY: run install dev db psql proxy migrate rollback drop test

@@ -1,6 +1,6 @@
 module github.com/ferdiebergado/go-fullstack-boilerplate
 
-go 1.22.7
+go 1.22.9
 
 require (
 	github.com/ferdiebergado/go-express v0.2.0
@@ -8,6 +8,7 @@ require (
 )
 
 require (
+	github.com/ferdiebergado/gopherkit v0.0.0-20241206140657-974dda757382 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
 	github.com/jackc/puddle/v2 v2.2.2 // indirect

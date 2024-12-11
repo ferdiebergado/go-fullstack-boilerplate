@@ -6,28 +6,21 @@ import (
 	"log"
 	"net/http"
 	"sync"
-	"time"
 
 	router "github.com/ferdiebergado/go-express"
-)
-
-const (
-	serverShutdownTimeout = 10
-	serverReadTimeout     = 10
-	serverWriteTimeout    = 10
-	serverIdleTimeout     = 60
+	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/config"
 )
 
 // Starts the HTTP server
-func Start(ctx context.Context, router *router.Router, port string) error {
+func Start(ctx context.Context, router *router.Router, cfg config.HTTPServerConfig) error {
 	// Configure the server
 	srv := &http.Server{
-		Addr:              ":" + port,
+		Addr:              cfg.Addr + ":" + cfg.Port,
 		Handler:           router,
-		ReadTimeout:       serverReadTimeout * time.Second,
-		ReadHeaderTimeout: serverReadTimeout * time.Second,
-		WriteTimeout:      serverWriteTimeout * time.Second,
-		IdleTimeout:       serverIdleTimeout * time.Second,
+		ReadTimeout:       cfg.ReadTimeout,
+		ReadHeaderTimeout: cfg.ReadTimeout,
+		WriteTimeout:      cfg.WriteTimeout,
+		IdleTimeout:       cfg.IdleTimeout,
 	}
 
 	// Wait for shutdown signal
@@ -44,7 +37,7 @@ func Start(ctx context.Context, router *router.Router, port string) error {
 
 		// Shutdown the server
 		log.Println("Shutting down server...")
-		shutdownCtx, cancel := context.WithTimeout(context.Background(), serverShutdownTimeout*time.Second)
+		shutdownCtx, cancel := context.WithTimeout(ctx, cfg.ShutdownTimeout)
 		defer cancel()
 
 		if err := srv.Shutdown(shutdownCtx); err != nil {

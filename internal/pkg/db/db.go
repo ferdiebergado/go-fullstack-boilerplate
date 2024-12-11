@@ -53,3 +53,13 @@ func Connect(dsn string) (*sql.DB, error) {
 
 	return db, nil
 }
+
+func Disconnect(db *sql.DB) {
+	log.Println("Closing database connection...")
+
+	if err := db.Close(); err != nil {
+		log.Printf("conn close: %v", err)
+	}
+
+	log.Println("Done.")
+}

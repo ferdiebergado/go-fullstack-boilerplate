@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
 	"os"
 	"os/signal"
 	"syscall"
@@ -31,15 +30,7 @@ func run(ctx context.Context, dsn string, port string) error {
 	}
 
 	// Close the database connection after running the application
-	defer func() {
-		log.Println("Closing database connection...")
-
-		if err = conn.Close(); err != nil {
-			log.Printf("conn close: %v", err)
-		}
-
-		log.Println("Done.")
-	}()
+	defer db.Disconnect(conn)
 
 	// Initialize the application.
 	application := app.NewApp(conn, router.NewRouter(), glog.CreateLogger())

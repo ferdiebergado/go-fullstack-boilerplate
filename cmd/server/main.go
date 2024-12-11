@@ -24,7 +24,7 @@ func run(ctx context.Context, dsn string, port string) error {
 	defer stop()
 
 	// Connect to the database.
-	conn, err := db.Connect(ctx, dsn)
+	conn, err := db.Connect(dsn)
 
 	if err != nil {
 		return err

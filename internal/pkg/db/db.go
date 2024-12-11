@@ -26,7 +26,7 @@ var ErrRowScan = errors.New("error occurred while scanning the row into the dest
 var ErrRowIteration = errors.New("error encountered during row iteration, possibly due to a database or connection issue")
 var ErrModelNotFound = errors.New("model not found")
 
-func Connect(ctx context.Context, dsn string) (*sql.DB, error) {
+func Connect(dsn string) (*sql.DB, error) {
 	log.Println("Connecting to the database...")
 
 	db, err := sql.Open(driver, dsn)
@@ -35,7 +35,7 @@ func Connect(ctx context.Context, dsn string) (*sql.DB, error) {
 		log.Fatalf("open database: %v", err)
 	}
 
-	pingCtx, cancel := context.WithTimeout(ctx, pingTimeout*time.Second)
+	pingCtx, cancel := context.WithTimeout(context.Background(), pingTimeout*time.Second)
 	defer cancel()
 
 	err = db.PingContext(pingCtx)

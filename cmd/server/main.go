@@ -33,7 +33,9 @@ func run(ctx context.Context, cfg *config.Config) error {
 	defer db.Disconnect(conn)
 
 	// Initialize the application.
-	application := app.New(conn, router.NewRouter(), glog.CreateLogger())
+	handler := router.NewRouter()
+	logger := glog.CreateLogger()
+	application := app.New(conn, handler, logger)
 
 	// Start the server
 	if err = server.Start(signalCtx, application.Router, cfg.Server); err != nil {

@@ -32,7 +32,7 @@ type DBConfig struct {
 func LoadConfig() *Config {
 	return &Config{
 		Server: HTTPServerConfig{
-			Port:            env.GetEnv("PORT", "8888"),
+			Port:            env.Get("PORT", "8888"),
 			ShutdownTimeout: 10 * time.Second,
 			ReadTimeout:     10 * time.Second,
 			WriteTimeout:    10 * time.Second,
@@ -40,7 +40,7 @@ func LoadConfig() *Config {
 		},
 		DB: DBConfig{
 			Driver:             "pgx",
-			DSN:                env.Must("DATABASE_URL"),
+			DSN:                env.MustGet("DATABASE_URL"),
 			ConnMaxLifetime:    0,
 			MaxIdleConnections: 50,
 			MaxOpenConnections: 50,

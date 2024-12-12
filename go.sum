@@ -3,8 +3,8 @@ github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/ferdiebergado/go-express v0.2.0 h1:vJtRIoGNxAoGw+3dD9ZYbd1XeFYDJEBa95wE1/jwm10=
 github.com/ferdiebergado/go-express v0.2.0/go.mod h1:cshVvvih9/llhHfz7AQg+qiGwzTTXbRBCJ6AdtUyB6s=
-github.com/ferdiebergado/gopherkit v0.0.0-20241206140657-974dda757382 h1:kbszfRWUcMs1tKjsnRuOF1tJ5vYrOIuDKPjHEzdHCpk=
-github.com/ferdiebergado/gopherkit v0.0.0-20241206140657-974dda757382/go.mod h1:QYeDX96iDq3aHeDxI0LuBooHeGuxuZ3Ki0iE421VDl8=
+github.com/ferdiebergado/gopherkit v0.0.1 h1:WcTik1EQq3tXp0XlPbwbVXTEzrJEnpI1kwU5Tvynoac=
+github.com/ferdiebergado/gopherkit v0.0.1/go.mod h1:QYeDX96iDq3aHeDxI0LuBooHeGuxuZ3Ki0iE421VDl8=
 github.com/jackc/pgpassfile v1.0.0 h1:/6Hmqy13Ss2zCq62VdNG8tM1wchn8zjSGOBJ6icpsIM=
 github.com/jackc/pgpassfile v1.0.0/go.mod h1:CEx0iS5ambNFdcRtxPj5JhEz+xB6uRky5eyVu/W2HEg=
 github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 h1:iCEnooe7UlwOQYpKFhBabPMi4aNAfoODPEFNiAnClxo=

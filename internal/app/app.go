@@ -13,7 +13,7 @@ type App struct {
 	Logger *slog.Logger
 }
 
-func NewApp(conn *sql.DB, router *router.Router, logger *slog.Logger) *App {
+func New(conn *sql.DB, router *router.Router, logger *slog.Logger) *App {
 	MountBaseRoutes(router)
 
 	return &App{

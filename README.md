@@ -6,7 +6,7 @@ A template to scaffold a fullstack golang web application.
 
 -   Standard Go Project [Layout](https://github.com/golang-standards/project-layout)
 -   Postgresql database using database/sql with [pgx](https://pkg.go.dev/github.com/jackc/pgx/stdlib) driver
--   [Router](https://github.com/ferdiebergado/go-express) based on net/http ServeMux
+-   [Router](https://github.com/ferdiebergado/goexpress) based on net/http ServeMux
 -   Templating based on html/template
 -   Optimized css and js builds
 -   Database migrations

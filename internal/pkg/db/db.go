@@ -3,23 +3,10 @@ package db
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"log"
 
 	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/config"
 )
-
-type DeleteMode int
-
-const (
-	SoftDelete DeleteMode = iota
-	HardDelete
-)
-
-var ErrRowClose = errors.New("failed to close the rows result set")
-var ErrRowScan = errors.New("error occurred while scanning the row into the destination variables")
-var ErrRowIteration = errors.New("error encountered during row iteration, possibly due to a database or connection issue")
-var ErrModelNotFound = errors.New("model not found")
 
 func Connect(ctx context.Context, cfg config.DBConfig) (*sql.DB, error) {
 	log.Println("Connecting to the database...")
@@ -33,9 +20,7 @@ func Connect(ctx context.Context, cfg config.DBConfig) (*sql.DB, error) {
 	pingCtx, cancel := context.WithTimeout(ctx, cfg.PingTimeout)
 	defer cancel()
 
-	err = db.PingContext(pingCtx)
-
-	if err != nil {
+	if err = db.PingContext(pingCtx); err != nil {
 		log.Printf("ping database: %v", err)
 		return nil, err
 	}

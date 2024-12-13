@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
 	"sync"
@@ -50,8 +51,7 @@ func Start(ctx context.Context, router *goexpress.Router, cfg config.HTTPServerC
 	// Start the server
 	log.Printf("HTTP Server listening on %s... (Press Ctrl-C to exit)", srv.Addr)
 	if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-		log.Printf("HTTP server ListenAndServe: %v", err)
-		return err
+		return fmt.Errorf("HTTP server ListenAndServe: %w", err)
 	}
 
 	wg.Wait()

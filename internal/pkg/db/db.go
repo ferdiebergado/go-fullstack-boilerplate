@@ -3,6 +3,7 @@ package db
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"log"
 
 	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/config"
@@ -21,8 +22,7 @@ func Connect(ctx context.Context, cfg config.DBConfig) (*sql.DB, error) {
 	defer cancel()
 
 	if err = db.PingContext(pingCtx); err != nil {
-		log.Printf("ping database: %v", err)
-		return nil, err
+		return nil, fmt.Errorf("ping database: %w", err)
 	}
 
 	db.SetConnMaxLifetime(cfg.ConnMaxLifetime)

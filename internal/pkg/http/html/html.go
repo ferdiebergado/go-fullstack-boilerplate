@@ -3,6 +3,7 @@ package html
 import (
 	"bytes"
 	"embed"
+	"fmt"
 	"html/template"
 	"net/http"
 	"path/filepath"
@@ -29,45 +30,24 @@ func Render(w http.ResponseWriter, data any, templateFiles ...string) {
 		targetTemplates = append(targetTemplates, targetTemplate)
 	}
 
-	funcMap := template.FuncMap{
-		"attr": func(s string) template.HTMLAttr {
-			return template.HTMLAttr(s)
-		},
-		"safe": func(s string) template.HTML {
-			return template.HTML(s)
-		},
-		"url": func(s string) template.URL {
-			return template.URL(s)
-		},
-		"js": func(s string) template.JS {
-			return template.JS(s)
-		},
-		"jsstr": func(s string) template.JSStr {
-			return template.JSStr(s)
-		},
-		"css": func(s string) template.CSS {
-			return template.CSS(s)
-		},
-	}
-
-	templates, err := template.New("template").Funcs(funcMap).ParseFS(templatesFS, targetTemplates...)
+	templates, err := template.New("template").Funcs(getFuncMap()).ParseFS(templatesFS, targetTemplates...)
 
 	if err != nil {
-		response.ServerError(w, "Parse templates", err)
+		response.RenderServerError(w, fmt.Errorf("parse template: %v", err))
 		return
 	}
 
 	var buf bytes.Buffer
 
 	if err := templates.ExecuteTemplate(&buf, layoutFile, data); err != nil {
-		response.ServerError(w, "Execute template", err)
+		response.RenderServerError(w, fmt.Errorf("execute template: %v", err))
 		return
 	}
 
 	_, err = buf.WriteTo(w)
 
 	if err != nil {
-		response.ServerError(w, "Write to buffer", err)
+		response.RenderServerError(w, fmt.Errorf("write to buffer: %v", err))
 		return
 	}
 }

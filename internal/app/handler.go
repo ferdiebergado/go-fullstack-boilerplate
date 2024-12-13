@@ -3,7 +3,7 @@ package app
 import (
 	"net/http"
 
-	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/web/html"
+	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/http/html"
 	"github.com/ferdiebergado/goexpress"
 )
 

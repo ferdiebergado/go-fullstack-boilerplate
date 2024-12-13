@@ -9,6 +9,7 @@ import (
 type Config struct {
 	Server HTTPServerConfig
 	DB     DBConfig
+	HTML   HTMLTemplateConfig
 }
 
 type HTTPServerConfig struct {
@@ -29,6 +30,12 @@ type DBConfig struct {
 	PingTimeout        time.Duration
 }
 
+type HTMLTemplateConfig struct {
+	TemplateDir      string
+	LayoutFile       string
+	PartialTemplates string
+}
+
 func Load() *Config {
 	return &Config{
 		Server: HTTPServerConfig{
@@ -45,6 +52,11 @@ func Load() *Config {
 			MaxIdleConnections: 50,
 			MaxOpenConnections: 50,
 			PingTimeout:        1 * time.Second,
+		},
+		HTML: HTMLTemplateConfig{
+			TemplateDir:      "templates",
+			LayoutFile:       "layout.html",
+			PartialTemplates: "partials/*.html",
 		},
 	}
 }

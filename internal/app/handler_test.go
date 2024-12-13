@@ -14,7 +14,7 @@ import (
 	"github.com/ferdiebergado/gopherkit/env"
 )
 
-func TestAddRoutes(t *testing.T) {
+func TestBaseHandler(t *testing.T) {
 	if err := env.Load("../../.env"); err != nil {
 		t.Fatal("missing .env file")
 	}

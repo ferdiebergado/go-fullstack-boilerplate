@@ -29,7 +29,7 @@ type DBConfig struct {
 	PingTimeout        time.Duration
 }
 
-func LoadConfig() *Config {
+func Load() *Config {
 	return &Config{
 		Server: HTTPServerConfig{
 			Port:            env.Get("PORT", "8888"),

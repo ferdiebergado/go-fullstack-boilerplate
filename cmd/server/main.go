@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"fmt"
+	"log"
 	"os"
 	"os/signal"
 	"syscall"
@@ -11,11 +11,11 @@ import (
 	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/config"
 	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/db"
 	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/http/server"
-	"github.com/ferdiebergado/goexpress"
+	"github.com/ferdiebergado/gopherkit/env"
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
-// Runs the application
+// Run the application
 func run(ctx context.Context, cfg *config.Config) error {
 	// Register OS Signal Listener
 	signalCtx, stop := signal.NotifyContext(ctx, os.Interrupt, syscall.SIGTERM)
@@ -31,9 +31,8 @@ func run(ctx context.Context, cfg *config.Config) error {
 	// Close the database connection after running the application
 	defer db.Disconnect(conn)
 
-	// Mount the router and register the routes
-	router := goexpress.New()
-	app.MountBaseRoutes(router)
+	// Setup the router
+	router := app.SetupRouter(conn)
 
 	// Start the server
 	if err = server.Start(signalCtx, router, cfg.Server); err != nil {
@@ -47,8 +46,17 @@ func run(ctx context.Context, cfg *config.Config) error {
 }
 
 func main() {
+	const dev = "development"
+
+	environment := env.Get("ENV", dev)
+
+	if environment == dev {
+		if err := env.Load(".env"); err != nil {
+			log.Fatalf("failed to load .env file: %v", err)
+		}
+	}
+
 	if err := run(context.Background(), config.Load()); err != nil {
-		fmt.Fprintf(os.Stderr, "%s\n", err)
-		os.Exit(1)
+		log.Fatalf("application error: %v", err)
 	}
 }

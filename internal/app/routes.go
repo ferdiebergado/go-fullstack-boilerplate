@@ -3,17 +3,17 @@ package app
 import (
 	"net/http"
 
-	router "github.com/ferdiebergado/go-express"
-	"github.com/ferdiebergado/go-express/middleware"
 	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/web/html"
+	"github.com/ferdiebergado/goexpress"
 )
 
-func MountBaseRoutes(router *router.Router) *router.Router {
+func MountBaseRoutes(router *goexpress.Router) *goexpress.Router {
 	// Add routes here, see https://github.com/ferdiebergado/go-express for the documentation.
 
 	// global middlewares
-	router.Use(middleware.RequestLogger)
-	router.Use(middleware.PanicRecovery)
+	router.Use(goexpress.LogRequest)
+	router.Use(goexpress.StripTrailingSlashes)
+	router.Use(goexpress.RecoverFromPanic)
 
 	// home page
 	router.Get("/{$}", func(w http.ResponseWriter, _ *http.Request) {

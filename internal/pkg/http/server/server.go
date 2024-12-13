@@ -7,12 +7,12 @@ import (
 	"net/http"
 	"sync"
 
-	router "github.com/ferdiebergado/go-express"
 	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/config"
+	"github.com/ferdiebergado/goexpress"
 )
 
 // Starts the HTTP server
-func Start(ctx context.Context, router *router.Router, cfg config.HTTPServerConfig) error {
+func Start(ctx context.Context, router *goexpress.Router, cfg config.HTTPServerConfig) error {
 	// Configure the server
 	srv := &http.Server{
 		Addr:              cfg.Addr + ":" + cfg.Port,

@@ -6,12 +6,12 @@ import (
 	"strings"
 	"testing"
 
-	router "github.com/ferdiebergado/go-express"
+	"github.com/ferdiebergado/goexpress"
 )
 
 func TestAddRoutes(t *testing.T) {
-	r := router.NewRouter() // Create a new instance of your custom Router
-	MountBaseRoutes(r)      // Add your routes to the Router
+	r := goexpress.New() // Create a new instance of your custom Router
+	MountBaseRoutes(r)   // Add your routes to the Router
 
 	t.Run("GET / should return status 200 and render home.html", func(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, "/", nil)

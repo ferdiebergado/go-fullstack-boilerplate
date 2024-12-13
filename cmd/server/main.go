@@ -7,12 +7,11 @@ import (
 	"os/signal"
 	"syscall"
 
-	router "github.com/ferdiebergado/go-express"
 	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/app"
 	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/config"
 	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/db"
 	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/http/server"
-	glog "github.com/ferdiebergado/gopherkit/log"
+	"github.com/ferdiebergado/goexpress"
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
@@ -32,13 +31,12 @@ func run(ctx context.Context, cfg *config.Config) error {
 	// Close the database connection after running the application
 	defer db.Disconnect(conn)
 
-	// Initialize the application.
-	handler := router.NewRouter()
-	logger := glog.CreateLogger()
-	application := app.New(conn, handler, logger)
+	// Mount the router and register the routes
+	router := goexpress.New()
+	app.MountBaseRoutes(router)
 
 	// Start the server
-	if err = server.Start(signalCtx, application.Router, cfg.Server); err != nil {
+	if err = server.Start(signalCtx, router, cfg.Server); err != nil {
 		return err
 	}
 
@@ -49,10 +47,7 @@ func run(ctx context.Context, cfg *config.Config) error {
 }
 
 func main() {
-	config := config.LoadConfig()
-	ctx := context.Background()
-
-	if err := run(ctx, config); err != nil {
+	if err := run(context.Background(), config.Load()); err != nil {
 		fmt.Fprintf(os.Stderr, "%s\n", err)
 		os.Exit(1)
 	}

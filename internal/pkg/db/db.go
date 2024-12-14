@@ -4,42 +4,58 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"log"
+	"log/slog"
 
 	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/config"
+	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/logging"
 )
 
-func Connect(ctx context.Context, cfg config.DBConfig) (*sql.DB, error) {
-	log.Println("Connecting to the database...")
+type Database struct {
+	conn   *sql.DB
+	config *config.DBConfig
+	logger *logging.Logger
+}
 
-	db, err := sql.Open(cfg.Driver, cfg.DSN)
+func New(cfg config.DBConfig, logger *logging.Logger) *Database {
+	return &Database{
+		config: &cfg,
+		logger: logger,
+	}
+}
+
+func (d *Database) Connect(ctx context.Context) (*sql.DB, error) {
+	d.logger.Info("Connecting to the database...")
+
+	db, err := sql.Open(d.config.Driver, d.config.DSN)
 
 	if err != nil {
-		log.Fatalf("open database: %v", err)
+		return nil, fmt.Errorf("initialize the database: %w", err)
 	}
 
-	pingCtx, cancel := context.WithTimeout(ctx, cfg.PingTimeout)
+	pingCtx, cancel := context.WithTimeout(ctx, d.config.PingTimeout)
 	defer cancel()
 
 	if err = db.PingContext(pingCtx); err != nil {
-		return nil, fmt.Errorf("ping database: %w", err)
+		return nil, fmt.Errorf("connect to the database: %w", err)
 	}
 
-	db.SetConnMaxLifetime(cfg.ConnMaxLifetime)
-	db.SetMaxIdleConns(cfg.MaxIdleConnections)
-	db.SetMaxOpenConns(cfg.MaxOpenConnections)
+	db.SetConnMaxLifetime(d.config.ConnMaxLifetime)
+	db.SetMaxIdleConns(d.config.MaxIdleConnections)
+	db.SetMaxOpenConns(d.config.MaxOpenConnections)
 
-	log.Println("Connected.")
+	d.conn = db
+
+	d.logger.Info("Connected.")
 
 	return db, nil
 }
 
-func Disconnect(db *sql.DB) {
-	log.Println("Closing database connection...")
+func (d *Database) Disconnect() {
+	d.logger.Info("Closing database connection...")
 
-	if err := db.Close(); err != nil {
-		log.Printf("conn close: %v", err)
+	if err := d.conn.Close(); err != nil {
+		d.logger.Error("failed to close the database connection", slog.String("error", err.Error()))
 	}
 
-	log.Println("Done.")
+	d.logger.Info("Done.")
 }

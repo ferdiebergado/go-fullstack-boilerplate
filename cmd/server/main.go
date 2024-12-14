@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"log/slog"
 	"os"
 	"os/signal"
 	"syscall"
@@ -39,7 +38,7 @@ func run() error {
 	defer stop()
 
 	// Create the logger
-	logger := logging.New(slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{AddSource: true})))
+	logger := logging.New()
 
 	// Load .env file when in development mode
 	if err := loadEnvFile(); err != nil {
@@ -76,7 +75,7 @@ func run() error {
 
 func main() {
 	if err := run(); err != nil {
-		fmt.Fprintf(os.Stderr, "FATAL ERROR: %v\n", err)
+		fmt.Fprintf(os.Stderr, "Fatal error occurred.\n%v\n", err)
 		os.Exit(1)
 	}
 }

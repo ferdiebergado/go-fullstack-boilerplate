@@ -2,10 +2,8 @@ package app
 
 import (
 	"context"
-	"log/slog"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"strings"
 	"testing"
 
@@ -24,7 +22,7 @@ func TestBaseHandler(t *testing.T) {
 	}
 
 	cfg := config.Load()
-	logger := logging.New(slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{AddSource: true})))
+	logger := logging.New()
 
 	database := db.New(cfg.DB, logger)
 	conn, err := database.Connect(context.Background())

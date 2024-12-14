@@ -10,29 +10,29 @@ import (
 )
 
 type BaseHandler struct {
-	Router       *goexpress.Router
-	Service      Service
-	Config       *config.Config
-	HTMLTemplate *html.Template
-	Logger       *logging.Logger
+	router       *goexpress.Router
+	service      Service
+	config       *config.Config
+	htmlTemplate *html.Template
+	logger       *logging.Logger
 }
 
 func NewHandler(router *goexpress.Router, service Service, cfg *config.Config, htmlTemplate *html.Template, logger *logging.Logger) *BaseHandler {
 	return &BaseHandler{
-		Router:       router,
-		Service:      service,
-		Config:       cfg,
-		HTMLTemplate: htmlTemplate,
-		Logger:       logger,
+		router:       router,
+		service:      service,
+		config:       cfg,
+		htmlTemplate: htmlTemplate,
+		logger:       logger,
 	}
 }
 
 func (h *BaseHandler) HandleDBStats(w http.ResponseWriter, _ *http.Request) {
-	stats := h.Service.Stats()
-	h.HTMLTemplate.Render(w, stats, "pages/dbstats.html")
+	stats := h.service.Stats()
+	h.htmlTemplate.Render(w, stats, "pages/dbstats.html")
 }
 
 func (h *BaseHandler) HandleNotFound(w http.ResponseWriter, _ *http.Request) {
 	w.WriteHeader(http.StatusNotFound)
-	h.HTMLTemplate.Render(w, nil, "pages/404.html")
+	h.htmlTemplate.Render(w, nil, "pages/404.html")
 }

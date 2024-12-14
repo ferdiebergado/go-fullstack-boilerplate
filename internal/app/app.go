@@ -10,35 +10,35 @@ import (
 )
 
 type App struct {
-	Config *config.Config
-	DB     *sql.DB
-	Router *goexpress.Router
-	Logger *logging.Logger
+	config *config.Config
+	db     *sql.DB
+	router *goexpress.Router
+	logger *logging.Logger
 }
 
 func New(config *config.Config, conn *sql.DB, router *goexpress.Router, logger *logging.Logger) *App {
 	return &App{
-		Config: config,
-		DB:     conn,
-		Router: router,
-		Logger: logger,
+		config: config,
+		db:     conn,
+		router: router,
+		logger: logger,
 	}
 }
 
 func (a *App) registerGlobalMiddlewares() {
-	a.Router.Use(goexpress.LogRequest)
-	a.Router.Use(goexpress.StripTrailingSlashes)
-	a.Router.Use(goexpress.RecoverFromPanic)
+	a.router.Use(goexpress.LogRequest)
+	a.router.Use(goexpress.StripTrailingSlashes)
+	a.router.Use(goexpress.RecoverFromPanic)
 }
 
 func (a *App) AddBaseHandler() *BaseHandler {
-	repo := NewRepo(a.DB)
+	repo := NewRepo(a.db)
 	service := NewService(repo)
-	htmlTemplate := html.NewTemplate(&a.Config.HTML, a.Logger)
-	return NewHandler(a.Router, service, a.Config, htmlTemplate, a.Logger)
+	htmlTemplate := html.NewTemplate(&a.config.HTML, a.logger)
+	return NewHandler(a.router, service, a.config, htmlTemplate, a.logger)
 }
 
 func (a *App) SetupRouter() {
 	a.registerGlobalMiddlewares()
-	registerBaseRoutes(a.Router, a.AddBaseHandler())
+	registerBaseRoutes(a.router, a.AddBaseHandler())
 }

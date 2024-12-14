@@ -26,7 +26,10 @@ func New(cfg config.DBConfig, logger *logging.Logger) *Database {
 func (d *Database) Connect(ctx context.Context) (*sql.DB, error) {
 	d.logger.Info("Connecting to the database...")
 
-	db, err := sql.Open(d.config.Driver, d.config.DSN)
+	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
+		d.config.Host, d.config.Port, d.config.User, d.config.Password, d.config.DB, d.config.SSLMode)
+
+	db, err := sql.Open(d.config.Driver, dsn)
 
 	if err != nil {
 		return nil, fmt.Errorf("initialize the database: %w", err)

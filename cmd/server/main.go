@@ -18,7 +18,7 @@ import (
 )
 
 func loadEnvFile() error {
-	const envVar = "ENV"
+	const envVar = "APP_ENV"
 	const envFile = ".env"
 	const dev = "development"
 

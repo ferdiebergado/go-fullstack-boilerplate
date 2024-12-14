@@ -21,7 +21,7 @@ dev:
 	air
 
 db:
-	$(CONTAINER) run -d --rm --network host --name $(DB_CONTAINER) -e POSTGRES_PASSWORD="$(DB_PASS)" \
+	$(CONTAINER) run -d --rm --network host --name $(DB_CONTAINER) -e POSTGRES_PASSWORD="$(DB_PASSWORD)" \
 		-v ./configs/postgresql.conf:/etc/postgresql/postgresql.conf:Z \
 		-v ./configs/psqlrc:/root/.psqlrc:Z \
 		$(DB_IMAGE) -c 'config_file=/etc/postgresql/postgresql.conf'

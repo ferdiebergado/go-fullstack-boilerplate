@@ -23,7 +23,12 @@ type HTTPServerConfig struct {
 
 type DBConfig struct {
 	Driver             string
-	DSN                string
+	Host               string
+	Port               string
+	DB                 string
+	User               string
+	Password           string
+	SSLMode            string
 	ConnMaxLifetime    time.Duration
 	MaxIdleConnections int
 	MaxOpenConnections int
@@ -39,7 +44,8 @@ type HTMLTemplateConfig struct {
 func Load() *Config {
 	return &Config{
 		Server: HTTPServerConfig{
-			Port:            env.Get("PORT", "8888"),
+			Addr:            env.Get("SERVER_HOST", "0.0.0.0"),
+			Port:            env.Get("SERVER_PORT", "8888"),
 			ShutdownTimeout: 10 * time.Second,
 			ReadTimeout:     10 * time.Second,
 			WriteTimeout:    10 * time.Second,
@@ -47,7 +53,12 @@ func Load() *Config {
 		},
 		DB: DBConfig{
 			Driver:             "pgx",
-			DSN:                env.MustGet("DATABASE_URL"),
+			Host:               env.MustGet("DB_HOST"),
+			Port:               env.MustGet("DB_PORT"),
+			DB:                 env.MustGet("DB_NAME"),
+			User:               env.MustGet("DB_USER"),
+			Password:           env.MustGet("DB_PASSWORD"),
+			SSLMode:            env.MustGet("DB_SSLMODE"),
 			ConnMaxLifetime:    0,
 			MaxIdleConnections: 50,
 			MaxOpenConnections: 50,

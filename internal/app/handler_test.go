@@ -11,6 +11,7 @@ import (
 
 	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/config"
 	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/db"
+	"github.com/ferdiebergado/goexpress"
 	"github.com/ferdiebergado/gopherkit/env"
 )
 
@@ -19,8 +20,10 @@ func TestBaseHandler(t *testing.T) {
 		t.Fatal("missing .env file")
 	}
 
+	cfg := config.Load()
+
 	// Connect to the database.
-	conn, err := db.Connect(context.Background(), config.Load().DB)
+	conn, err := db.Connect(context.Background(), cfg.DB)
 
 	if err != nil {
 		t.Fatalf("db connect: %v", err)
@@ -29,14 +32,15 @@ func TestBaseHandler(t *testing.T) {
 	// Close the database connection after running the application
 	defer db.Disconnect(conn)
 
-	router := SetupRouter(conn)
+	application := New(conn, goexpress.New(), cfg)
+	application.SetupRouter()
 
 	t.Run("GET / should return status 200 and render home.html", func(t *testing.T) {
 		t.Skip()
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
 		rec := httptest.NewRecorder()
 
-		router.ServeHTTP(rec, req)
+		application.Router.ServeHTTP(rec, req)
 
 		if rec.Code != http.StatusOK {
 			t.Errorf("Expected %d but got %d", http.StatusOK, rec.Code)
@@ -54,7 +58,7 @@ func TestBaseHandler(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, "/dbstats", nil)
 		rec := httptest.NewRecorder()
 
-		router.ServeHTTP(rec, req)
+		application.Router.ServeHTTP(rec, req)
 
 		if rec.Code != http.StatusOK {
 			t.Errorf("Expected %d but got %d", http.StatusOK, rec.Code)
@@ -72,7 +76,7 @@ func TestBaseHandler(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, "/nonexistent", nil)
 		rec := httptest.NewRecorder()
 
-		router.ServeHTTP(rec, req)
+		application.Router.ServeHTTP(rec, req)
 
 		if rec.Code != http.StatusNotFound {
 			t.Errorf("Expected %d but got %d", http.StatusNotFound, rec.Code)

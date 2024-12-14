@@ -3,40 +3,40 @@ package app
 import (
 	"net/http"
 
+	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/config"
 	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/http/html"
 	"github.com/ferdiebergado/goexpress"
 )
 
 type BaseHandler struct {
-	Router  *goexpress.Router
-	Service Service
+	Router       *goexpress.Router
+	Service      Service
+	Config       *config.Config
+	HTMLTemplate *html.Template
 }
 
-func NewHandler(router *goexpress.Router, service Service) *BaseHandler {
+func NewHandler(router *goexpress.Router, service Service, cfg *config.Config, htmlTemplate *html.Template) *BaseHandler {
 	return &BaseHandler{
-		Router:  router,
-		Service: service,
+		Router:       router,
+		Service:      service,
+		Config:       cfg,
+		HTMLTemplate: htmlTemplate,
 	}
-}
-
-func (h *BaseHandler) registerGlobalMiddlewares() {
-	h.Router.Use(goexpress.LogRequest)
-	h.Router.Use(goexpress.StripTrailingSlashes)
-	h.Router.Use(goexpress.RecoverFromPanic)
-}
-
-func (h *BaseHandler) RegisterRoutes() {
-	h.registerGlobalMiddlewares()
-	h.Router.Get("/", h.HandleNotFound)
-	h.Router.Get("/dbstats", h.HandleDBStats)
 }
 
 func (h *BaseHandler) HandleDBStats(w http.ResponseWriter, _ *http.Request) {
 	stats := h.Service.Stats()
-	html.Render(w, stats, "pages/dbstats.html")
+	h.HTMLTemplate.Render(w, stats, "pages/dbstats.html")
 }
 
 func (h *BaseHandler) HandleNotFound(w http.ResponseWriter, _ *http.Request) {
 	w.WriteHeader(http.StatusNotFound)
-	html.Render(w, nil, "pages/404.html")
+	h.HTMLTemplate.Render(w, nil, "pages/404.html")
+}
+
+func (h *BaseHandler) HandleTest(w http.ResponseWriter, _ *http.Request) {
+	data := map[string]string{
+		"test": "this is a test",
+	}
+	h.HTMLTemplate.Render(w, data, "pages/home.html")
 }

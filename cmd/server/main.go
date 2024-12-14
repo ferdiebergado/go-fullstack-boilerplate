@@ -11,6 +11,7 @@ import (
 	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/config"
 	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/db"
 	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/http/server"
+	"github.com/ferdiebergado/goexpress"
 	"github.com/ferdiebergado/gopherkit/env"
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
@@ -31,11 +32,12 @@ func run(ctx context.Context, cfg *config.Config) error {
 	// Close the database connection after running the application
 	defer db.Disconnect(conn)
 
-	// Setup the router
-	router := app.SetupRouter(conn)
+	// Create the application
+	application := app.New(conn, goexpress.New(), cfg)
+	application.SetupRouter()
 
 	// Start the server
-	if err = server.Start(signalCtx, router, cfg.Server); err != nil {
+	if err = server.Start(signalCtx, application.Router, cfg.Server); err != nil {
 		return err
 	}
 
@@ -46,13 +48,12 @@ func run(ctx context.Context, cfg *config.Config) error {
 }
 
 func main() {
+	const envFile = ".env"
 	const dev = "development"
 
-	environment := env.Get("ENV", dev)
-
-	if environment == dev {
-		if err := env.Load(".env"); err != nil {
-			log.Fatalf("failed to load .env file: %v", err)
+	if environment := env.Get("ENV", dev); environment == dev {
+		if err := env.Load(envFile); err != nil {
+			log.Fatalf("failed to load %s file: %v", envFile, err)
 		}
 	}
 

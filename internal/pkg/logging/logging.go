@@ -12,7 +12,7 @@ type Logger struct {
 func New() *Logger {
 	var handler slog.Handler
 
-	opts := &slog.HandlerOptions{AddSource: true}
+	opts := &slog.HandlerOptions{AddSource: false}
 
 	if os.Getenv("ENV") == "production" {
 		handler = slog.NewJSONHandler(os.Stdout, opts)

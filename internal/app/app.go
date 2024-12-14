@@ -37,5 +37,5 @@ func (a *App) AddBaseHandler() *BaseHandler {
 
 func (a *App) SetupRouter() {
 	a.registerGlobalMiddlewares()
-	registerRoutes(a.Router, *a.AddBaseHandler())
+	registerBaseRoutes(a.Router, a.AddBaseHandler())
 }

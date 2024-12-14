@@ -5,7 +5,7 @@ import (
 	"net/http"
 )
 
-func RenderServerError(w http.ResponseWriter, err error) {
-	log.Printf("server error: %v", err)
-	http.Error(w, "An error occurred.", http.StatusInternalServerError)
+func RenderError(w http.ResponseWriter, err *HTTPError) {
+	log.Printf("Error: %v", err.Err)
+	http.Error(w, err.Error(), err.Code)
 }

@@ -51,7 +51,7 @@ func Load() *Config {
 			ConnMaxLifetime:    0,
 			MaxIdleConnections: 50,
 			MaxOpenConnections: 50,
-			PingTimeout:        1 * time.Second,
+			PingTimeout:        5 * time.Second,
 		},
 		HTML: HTMLTemplateConfig{
 			TemplateDir:      "templates",

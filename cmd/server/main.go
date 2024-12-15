@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
 	"os"
 	"os/signal"
@@ -26,7 +25,7 @@ func loadEnvFile() error {
 
 	if environment := env.Get(envVar, dev); environment == dev {
 		if err := env.Load(envFile); err != nil {
-			return fmt.Errorf("load env: %w", err)
+			return err
 		}
 	}
 

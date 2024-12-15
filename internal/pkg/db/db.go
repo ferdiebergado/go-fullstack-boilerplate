@@ -29,14 +29,14 @@ func (d *Database) Connect(ctx context.Context) (*sql.DB, error) {
 	db, err := sql.Open(d.config.Driver, dsn)
 
 	if err != nil {
-		return nil, fmt.Errorf("database initialization: %w", err)
+		return nil, err
 	}
 
 	pingCtx, cancel := context.WithTimeout(ctx, d.config.PingTimeout)
 	defer cancel()
 
 	if err = db.PingContext(pingCtx); err != nil {
-		return nil, fmt.Errorf("database connect: %w", err)
+		return nil, err
 	}
 
 	db.SetConnMaxLifetime(d.config.ConnMaxLifetime)

@@ -35,25 +35,6 @@ func TestBaseHandler(t *testing.T) {
 	application := New(cfg, conn, router)
 	application.SetupRouter()
 
-	t.Run("GET / should return status 200 and render home.html", func(t *testing.T) {
-		t.Skip()
-		req := httptest.NewRequest(http.MethodGet, "/", nil)
-		rec := httptest.NewRecorder()
-
-		router.ServeHTTP(rec, req)
-
-		if rec.Code != http.StatusOK {
-			t.Errorf("Expected %d but got %d", http.StatusOK, rec.Code)
-		}
-
-		expected := "Welcome!"
-		actual := rec.Body.String()
-
-		if !strings.Contains(actual, expected) {
-			t.Errorf("Expected %s but got %s", expected, actual)
-		}
-	})
-
 	t.Run("GET /dbstats should return status 200 and render dbstats.html", func(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, "/dbstats", nil)
 		rec := httptest.NewRecorder()

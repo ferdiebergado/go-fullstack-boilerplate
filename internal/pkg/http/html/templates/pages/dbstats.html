@@ -1,4 +1,4 @@
-{{ block "styles" .}}
+{{ define "title"}} Database Statistics {{end}} {{ define "styles"}}
 <style>
   table,
   th,
@@ -21,7 +21,7 @@
   }
 </style>
 
-{{ end }} {{block "content" . }}
+{{ end }} {{define "content"}}
 <h1>Database Statistics</h1>
 <h2>Connection</h2>
 <table>

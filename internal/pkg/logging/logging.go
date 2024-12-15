@@ -5,15 +5,6 @@ import (
 	"os"
 )
 
-type Logger struct {
-	*slog.Logger
-}
-
-func New() *Logger {
-	handler := getHandler()
-	return &Logger{slog.New(handler)}
-}
-
 func getHandler() slog.Handler {
 	var handler slog.Handler
 
@@ -34,8 +25,8 @@ func SetLogger() {
 	slog.SetDefault(logger)
 }
 
-func (l *Logger) Fatal(reason string, err error) {
-	l.Logger.Error(
+func Fatal(reason string, err error) {
+	slog.Error(
 		"Fatal error occurred",
 		"reason", reason,
 		"error", err.Error(),

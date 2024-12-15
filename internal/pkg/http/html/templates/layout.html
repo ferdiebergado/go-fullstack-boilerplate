@@ -3,8 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>{{block "title" . }}{{end}}</title>
-    {{block "styles" . }}{{end}} {{block "scripts" . }}{{end}}
+    <title>{{block "title" .}}{{end}}</title>
+    {{block "styles" .}}{{end}}{{block "scripts" .}}{{end}}
   </head>
   <body>
     <header>
@@ -14,7 +14,7 @@
         </ul>
       </nav>
     </header>
-    <main role="main">{{block "content" . }}{{end}}</main>
+    <main role="main">{{block "content" .}}{{end}}</main>
     <footer>&copy; 2024</footer>
   </body>
 </html>

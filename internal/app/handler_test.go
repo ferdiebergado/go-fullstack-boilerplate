@@ -11,7 +11,6 @@ import (
 
 	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/config"
 	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/db"
-	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/logging"
 	"github.com/ferdiebergado/goexpress"
 	"github.com/ferdiebergado/gopherkit/env"
 )
@@ -22,9 +21,8 @@ func TestBaseHandler(t *testing.T) {
 	}
 
 	cfg := config.Load()
-	logger := logging.New()
 
-	database := db.New(cfg.DB, logger)
+	database := db.New(cfg.DB)
 	conn, err := database.Connect(context.Background())
 
 	if err != nil {
@@ -34,7 +32,7 @@ func TestBaseHandler(t *testing.T) {
 	defer database.Disconnect()
 
 	router := goexpress.New()
-	application := New(cfg, conn, router, logger)
+	application := New(cfg, conn, router)
 	application.SetupRouter()
 
 	t.Run("GET / should return status 200 and render home.html", func(t *testing.T) {

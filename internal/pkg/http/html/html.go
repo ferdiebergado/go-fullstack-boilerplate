@@ -9,7 +9,6 @@ import (
 
 	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/config"
 	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/http/response"
-	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/logging"
 )
 
 //go:embed templates/*
@@ -18,14 +17,12 @@ var templatesFS embed.FS
 type Template struct {
 	templateDir string
 	layoutFile  string
-	logger      *logging.Logger
 }
 
-func NewTemplate(cfg *config.HTMLTemplateConfig, logger *logging.Logger) *Template {
+func NewTemplate(cfg *config.HTMLTemplateConfig) *Template {
 	return &Template{
 		templateDir: cfg.TemplateDir,
 		layoutFile:  cfg.LayoutFile,
-		logger:      logger,
 	}
 }
 
@@ -45,21 +42,21 @@ func (t *Template) Render(w http.ResponseWriter, data any, templateFiles ...stri
 	templates, err := template.New("template").Funcs(getFuncMap()).ParseFS(templatesFS, targetTemplates...)
 
 	if err != nil {
-		response.RenderError(w, response.ServerError(err), t.logger)
+		response.RenderError(w, response.ServerError(err))
 		return
 	}
 
 	var buf bytes.Buffer
 
 	if err := templates.ExecuteTemplate(&buf, layoutFile, data); err != nil {
-		response.RenderError(w, response.ServerError(err), t.logger)
+		response.RenderError(w, response.ServerError(err))
 		return
 	}
 
 	_, err = buf.WriteTo(w)
 
 	if err != nil {
-		response.RenderError(w, response.ServerError(err), t.logger)
+		response.RenderError(w, response.ServerError(err))
 		return
 	}
 }

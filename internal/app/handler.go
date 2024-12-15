@@ -5,7 +5,6 @@ import (
 
 	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/config"
 	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/http/html"
-	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/logging"
 	"github.com/ferdiebergado/goexpress"
 )
 
@@ -14,16 +13,14 @@ type BaseHandler struct {
 	service      Service
 	config       *config.Config
 	htmlTemplate *html.Template
-	logger       *logging.Logger
 }
 
-func NewHandler(router *goexpress.Router, service Service, cfg *config.Config, htmlTemplate *html.Template, logger *logging.Logger) *BaseHandler {
+func NewHandler(router *goexpress.Router, service Service, cfg *config.Config, htmlTemplate *html.Template) *BaseHandler {
 	return &BaseHandler{
 		router:       router,
 		service:      service,
 		config:       cfg,
 		htmlTemplate: htmlTemplate,
-		logger:       logger,
 	}
 }
 

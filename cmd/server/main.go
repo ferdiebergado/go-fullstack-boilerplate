@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"os"
 	"os/signal"
 	"syscall"
@@ -17,6 +18,7 @@ import (
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
+// Loads an environment file when in development
 func loadEnvFile() error {
 	const envVar = "APP_ENV"
 	const envFile = ".env"
@@ -24,7 +26,7 @@ func loadEnvFile() error {
 
 	if environment := env.Get(envVar, dev); environment == dev {
 		if err := env.Load(envFile); err != nil {
-			return err
+			return fmt.Errorf("load env: %w", err)
 		}
 	}
 
@@ -32,13 +34,10 @@ func loadEnvFile() error {
 }
 
 // Run the application
-func run() error {
+func run(ctx context.Context) error {
 	// Register OS Signal Listener
-	signalCtx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	signalCtx, stop := signal.NotifyContext(ctx, os.Interrupt, syscall.SIGTERM)
 	defer stop()
-
-	// Create the logger
-	logger := logging.New()
 
 	// Load .env file when in development mode
 	if err := loadEnvFile(); err != nil {
@@ -49,7 +48,7 @@ func run() error {
 	cfg := config.Load()
 
 	// Connect to the database.
-	database := db.New(cfg.DB, logger)
+	database := db.New(cfg.DB)
 	conn, err := database.Connect(signalCtx)
 	if err != nil {
 		return err
@@ -61,11 +60,11 @@ func run() error {
 	router := goexpress.New()
 
 	// Create the application
-	application := app.New(cfg, conn, router, logger)
+	application := app.New(cfg, conn, router)
 	application.SetupRouter()
 
 	// Start the httpServer
-	httpServer := server.New(cfg.Server, router, logger)
+	httpServer := server.New(cfg.Server, router)
 	if err := httpServer.Start(signalCtx); err != nil {
 		return err
 	}
@@ -74,8 +73,14 @@ func run() error {
 }
 
 func main() {
-	if err := run(); err != nil {
-		fmt.Fprintf(os.Stderr, "Fatal error occurred.\n%v\n", err)
+	logging.SetLogger()
+
+	slog.Info("Running application...")
+
+	if err := run(context.Background()); err != nil {
+		slog.Error("Fatal error occurred.", "reason", err, "severity", "FATAL")
 		os.Exit(1)
 	}
+
+	slog.Info("Done.")
 }

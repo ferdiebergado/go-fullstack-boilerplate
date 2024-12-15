@@ -5,7 +5,6 @@ import (
 
 	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/config"
 	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/http/html"
-	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/logging"
 	"github.com/ferdiebergado/goexpress"
 )
 
@@ -13,15 +12,13 @@ type App struct {
 	config *config.Config
 	db     *sql.DB
 	router *goexpress.Router
-	logger *logging.Logger
 }
 
-func New(config *config.Config, conn *sql.DB, router *goexpress.Router, logger *logging.Logger) *App {
+func New(config *config.Config, conn *sql.DB, router *goexpress.Router) *App {
 	return &App{
 		config: config,
 		db:     conn,
 		router: router,
-		logger: logger,
 	}
 }
 
@@ -34,8 +31,8 @@ func (a *App) registerGlobalMiddlewares() {
 func (a *App) AddBaseHandler() *BaseHandler {
 	repo := NewRepo(a.db)
 	service := NewService(repo)
-	htmlTemplate := html.NewTemplate(&a.config.HTML, a.logger)
-	return NewHandler(a.router, service, a.config, htmlTemplate, a.logger)
+	htmlTemplate := html.NewTemplate(&a.config.HTML)
+	return NewHandler(a.router, service, a.config, htmlTemplate)
 }
 
 func (a *App) SetupRouter() {

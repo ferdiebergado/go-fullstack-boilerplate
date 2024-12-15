@@ -10,6 +10,11 @@ type Logger struct {
 }
 
 func New() *Logger {
+	handler := getHandler()
+	return &Logger{slog.New(handler)}
+}
+
+func getHandler() slog.Handler {
 	var handler slog.Handler
 
 	opts := &slog.HandlerOptions{AddSource: false}
@@ -17,19 +22,25 @@ func New() *Logger {
 	if os.Getenv("ENV") == "production" {
 		handler = slog.NewJSONHandler(os.Stdout, opts)
 	} else {
-		handler = slog.NewTextHandler(os.Stdout, opts)
+		handler = slog.NewTextHandler(os.Stderr, opts)
 	}
 
-	return &Logger{slog.New(handler)}
+	return handler
+}
+
+func SetLogger() {
+	handler := getHandler()
+	logger := slog.New(handler)
+	slog.SetDefault(logger)
 }
 
 func (l *Logger) Fatal(reason string, err error) {
 	l.Logger.Error(
 		"Fatal error occurred",
-		slog.String("reason", reason),
-		slog.String("error", err.Error()),
-		slog.String("severity", "FATAL"),
+		"reason", reason,
+		"error", err.Error(),
+		"severity", "FATAL",
 	)
 
-	os.Exit(1)
+	panic(reason)
 }

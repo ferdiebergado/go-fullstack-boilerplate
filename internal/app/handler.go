@@ -25,8 +25,7 @@ func NewHandler(router *goexpress.Router, service Service, cfg *config.Config, h
 }
 
 func (h *BaseHandler) HandleDBStats(w http.ResponseWriter, _ *http.Request) {
-	stats := h.service.Stats()
-	h.htmlTemplate.Render(w, stats, "pages/dbstats.html")
+	h.htmlTemplate.Render(w, h.service.Stats(), "pages/dbstats.html")
 }
 
 func (h *BaseHandler) HandleNotFound(w http.ResponseWriter, _ *http.Request) {

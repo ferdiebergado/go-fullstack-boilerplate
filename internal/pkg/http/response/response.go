@@ -6,6 +6,6 @@ import (
 )
 
 func RenderError(w http.ResponseWriter, err *HTTPError) {
-	slog.Error(err.Error(), slog.String("error", err.Err.Error()))
+	slog.Error(err.Error(), "error", err.Err)
 	http.Error(w, err.Error(), err.Code)
 }

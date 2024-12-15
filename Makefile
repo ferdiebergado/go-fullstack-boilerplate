@@ -1,12 +1,13 @@
+# Load environment variables from .env
+include .env
+export $(shell sed 's/=.*//' .env)
+
 DB_CONTAINER := postgres
 DB_IMAGE := postgres:17.0-alpine3.20
 PROXY_CONTAINER := nginx_reverse_proxy
 PROXY_IMAGE := nginx:1.27.2-alpine3.20
 MIGRATIONS_DIR := ./internal/pkg/db/migrations
-
-# Load environment variables from .env
-include .env
-export $(shell sed 's/=.*//' .env)
+DATABASE_URL := postgres://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)?sslmode=$(DB_SSLMODE)
 
 all: db proxy dev
 
@@ -22,6 +23,7 @@ dev:
 
 db:
 	$(CONTAINER) run -d --rm --network host --name $(DB_CONTAINER) -e POSTGRES_PASSWORD="$(DB_PASSWORD)" \
+	-e POSTGRES_USER="$(DB_USER)" -e POSTGRES_DB="$(DB_NAME)" \
 		-v ./configs/postgresql.conf:/etc/postgresql/postgresql.conf:Z \
 		-v ./configs/psqlrc:/root/.psqlrc:Z \
 		$(DB_IMAGE) -c 'config_file=/etc/postgresql/postgresql.conf'

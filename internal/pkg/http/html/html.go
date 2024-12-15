@@ -5,7 +5,6 @@ import (
 	"embed"
 	"html/template"
 	"net/http"
-	"path/filepath"
 
 	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/config"
 	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/http/response"
@@ -27,15 +26,11 @@ func NewTemplate(cfg *config.HTMLTemplateConfig) *Template {
 }
 
 func (t *Template) Render(w http.ResponseWriter, data any, templateFiles ...string) {
-	templateDir := t.templateDir
-	layoutFile := t.layoutFile
-
-	layoutTemplate := filepath.Join(templateDir, layoutFile)
-
+	layoutTemplate := t.templateDir + "/" + t.layoutFile
 	targetTemplates := []string{layoutTemplate}
 
 	for _, file := range templateFiles {
-		targetTemplate := filepath.Join(templateDir, file)
+		targetTemplate := t.templateDir + "/" + file
 		targetTemplates = append(targetTemplates, targetTemplate)
 	}
 
@@ -48,7 +43,7 @@ func (t *Template) Render(w http.ResponseWriter, data any, templateFiles ...stri
 
 	var buf bytes.Buffer
 
-	if err := templates.ExecuteTemplate(&buf, layoutFile, data); err != nil {
+	if err = templates.ExecuteTemplate(&buf, t.layoutFile, data); err != nil {
 		response.RenderError(w, response.ServerError(err))
 		return
 	}

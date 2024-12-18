@@ -41,9 +41,7 @@ func TestBaseHandler(t *testing.T) {
 
 		router.ServeHTTP(rec, req)
 
-		if rec.Code != http.StatusOK {
-			t.Errorf("Expected %d but got %d", http.StatusOK, rec.Code)
-		}
+		assert.Equal(t, http.StatusOK, rec.Code)
 
 		expected := "Database Statistics"
 		actual := rec.Body.String()
@@ -57,9 +55,7 @@ func TestBaseHandler(t *testing.T) {
 
 		router.ServeHTTP(rec, req)
 
-		if rec.Code != http.StatusNotFound {
-			t.Errorf("Expected %d but got %d", http.StatusNotFound, rec.Code)
-		}
+		assert.Equal(t, http.StatusNotFound, rec.Code)
 
 		expected := "The page you are looking for does not exist."
 		actual := rec.Body.String()

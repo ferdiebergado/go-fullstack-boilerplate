@@ -6,13 +6,19 @@ import (
 )
 
 func getHandler() slog.Handler {
+	logLevel := new(slog.LevelVar)
+
+	opts := &slog.HandlerOptions{
+		AddSource: false,
+		Level:     logLevel,
+	}
+
 	var handler slog.Handler
 
-	opts := &slog.HandlerOptions{AddSource: false}
-
-	if os.Getenv("ENV") == "production" {
+	if os.Getenv("APP_ENV") == "production" {
 		handler = slog.NewJSONHandler(os.Stdout, opts)
 	} else {
+		logLevel.Set(slog.LevelDebug)
 		handler = slog.NewTextHandler(os.Stderr, opts)
 	}
 
@@ -23,15 +29,4 @@ func SetLogger() {
 	handler := getHandler()
 	logger := slog.New(handler)
 	slog.SetDefault(logger)
-}
-
-func Fatal(reason string, err error) {
-	slog.Error(
-		"Fatal error occurred",
-		"reason", reason,
-		"error", err.Error(),
-		"severity", "FATAL",
-	)
-
-	panic(reason)
 }

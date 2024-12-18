@@ -2,6 +2,8 @@ package main
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"log/slog"
 	"os"
 	"os/signal"
@@ -17,15 +19,19 @@ import (
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
+var ErrEnvLoad = errors.New("failed to load environment file")
+
 // Loads an environment file when in development
 func loadEnvFile() error {
-	const envVar = "APP_ENV"
-	const envFile = ".env"
-	const dev = "development"
+	const (
+		envVar  = "APP_ENV"
+		envFile = ".env"
+		dev     = "development"
+	)
 
 	if environment := env.Get(envVar, dev); environment == dev {
 		if err := env.Load(envFile); err != nil {
-			return err
+			return fmt.Errorf("%w: %w", ErrEnvLoad, err)
 		}
 	}
 
@@ -77,7 +83,7 @@ func main() {
 	slog.Info("Running application...")
 
 	if err := run(context.Background()); err != nil {
-		slog.Error("Fatal error occurred.", "reason", err, "severity", "FATAL")
+		slog.Error("Fatal error occurred.", "reason", err, "severity", "Fatal")
 		os.Exit(1)
 	}
 

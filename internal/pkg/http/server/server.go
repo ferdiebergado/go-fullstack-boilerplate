@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log/slog"
 	"net/http"
 
@@ -14,6 +15,8 @@ type Server struct {
 	*http.Server
 	config config.HTTPServerConfig
 }
+
+var ErrServerStart = errors.New("failed to start the server")
 
 func New(cfg config.HTTPServerConfig, router *goexpress.Router) *Server {
 	srv := &http.Server{
@@ -43,7 +46,7 @@ func (s *Server) Start(ctx context.Context) error {
 
 	slog.Info("HTTP Server listening", "addr", s.Server.Addr)
 	if err := s.Server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-		return err
+		return fmt.Errorf("%w %v", ErrServerStart, err)
 	}
 
 	return nil

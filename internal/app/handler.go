@@ -24,6 +24,10 @@ func NewHandler(router *goexpress.Router, service Service, cfg *config.Config, h
 	}
 }
 
+func (h *BaseHandler) HandleDashboard(w http.ResponseWriter, _ *http.Request) {
+	h.htmlTemplate.Render(w, nil, "dashboard")
+}
+
 func (h *BaseHandler) HandleDBStats(w http.ResponseWriter, _ *http.Request) {
 	h.htmlTemplate.Render(w, h.service.Stats(), "dbstats")
 }

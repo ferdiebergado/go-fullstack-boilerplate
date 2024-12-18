@@ -1,6 +1,7 @@
 package response
 
 import (
+	"errors"
 	"net/http"
 )
 
@@ -17,6 +18,16 @@ func ServerError(err error) *HTTPError {
 		Code:    http.StatusInternalServerError,
 		Message: ServerErrorMessage,
 		Err:     err,
+	}
+}
+
+func TemplateNotFoundError(name string) *HTTPError {
+	msg := "template does not exists: " + name
+
+	return &HTTPError{
+		Code:    http.StatusInternalServerError,
+		Message: msg,
+		Err:     errors.New(msg),
 	}
 }
 

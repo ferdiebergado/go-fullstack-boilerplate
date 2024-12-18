@@ -36,9 +36,10 @@ type DBConfig struct {
 }
 
 type HTMLTemplateConfig struct {
-	TemplateDir      string
-	LayoutFile       string
-	PartialTemplates string
+	TemplateDir string
+	LayoutFile  string
+	PagesDir    string
+	PartialsDir string
 }
 
 func Load() *Config {
@@ -65,9 +66,10 @@ func Load() *Config {
 			PingTimeout:        5 * time.Second,
 		},
 		HTML: HTMLTemplateConfig{
-			TemplateDir:      "templates",
-			LayoutFile:       "layout.html",
-			PartialTemplates: "partials/*.html",
+			TemplateDir: "templates",
+			LayoutFile:  "layout.html",
+			PagesDir:    "pages",
+			PartialsDir: "partials",
 		},
 	}
 }

@@ -3,28 +3,40 @@ package html
 import (
 	"bytes"
 	"embed"
+	"errors"
 	"fmt"
 	"html/template"
+	"io/fs"
+	"log/slog"
 	"net/http"
+	"strings"
 
 	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/config"
+	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/errtypes"
 	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/http/response"
 )
 
 //go:embed templates/*
 var templatesFS embed.FS
 
+var (
+	ErrTemplateParse    = errors.New("failed to parse template")
+	ErrTemplateNotFound = errors.New("could not find template")
+	ErrTemplateExec     = errors.New("failed to execute template")
+	ErrTemplateWrite    = errors.New("failed to write template to the response")
+)
+
+type templateMap map[string]*template.Template
+
 type Template struct {
-	templates map[string]*template.Template
+	templates templateMap
 }
 
-func NewTemplate(cfg *config.HTMLTemplateConfig) *Template {
-	templateDir := cfg.TemplateDir + "/"
-	layoutFile := cfg.LayoutFile
-	pagesDir := cfg.PagesDir + "/"
-	templatePagesDir := templateDir + pagesDir
+const suffix = ".html"
 
-	funcMap := template.FuncMap{
+// Retrieve the template func maps
+func getFuncMap() template.FuncMap {
+	return template.FuncMap{
 		"attr": func(s string) template.HTMLAttr {
 			return template.HTMLAttr(s)
 		},
@@ -44,40 +56,90 @@ func NewTemplate(cfg *config.HTMLTemplateConfig) *Template {
 			return template.CSS(s)
 		},
 	}
+}
 
-	layoutTmpl := template.Must(template.New("layout").Funcs(funcMap).ParseFS(templatesFS, templateDir+layoutFile))
+// Parse all partial templates into the layout template
+func parsePartials(layoutTmpl *template.Template, partialsDir string) {
+	err := fs.WalkDir(templatesFS, partialsDir, func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if !d.IsDir() && strings.HasSuffix(path, suffix) {
+			_, parseErr := layoutTmpl.ParseFS(templatesFS, path)
+			if parseErr != nil {
+				return fmt.Errorf("failed to parse partial: %w", parseErr)
+			}
+			slog.Debug("parsed partial", "path", path)
+		}
+		return nil
+	})
 
-	parseTemplate := func(htmlFile string) *template.Template {
-		return template.Must(template.Must(layoutTmpl.Clone()).ParseFS(templatesFS, htmlFile))
+	if err != nil {
+		panic(fmt.Errorf("failed to load partial templates: %w", err))
 	}
 
-	return &Template{
-		templates: map[string]*template.Template{
-			"dbstats": parseTemplate(templatePagesDir + "dbstats.html"),
-			"404":     parseTemplate(templatePagesDir + "404.html"),
-		},
+	slog.Debug("layout", "name", layoutTmpl.Name(), "defined_templates", layoutTmpl.DefinedTemplates())
+}
+
+// Load main templates from pagesDir
+func parsePages(layoutTmpl *template.Template, templatePagesDir string) templateMap {
+	tmplMap := make(templateMap)
+	err := fs.WalkDir(templatesFS, templatePagesDir, func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if !d.IsDir() && strings.HasSuffix(path, suffix) {
+			name := strings.TrimPrefix(path, templatePagesDir+"/")
+			name = strings.TrimSuffix(name, suffix)
+			tmplMap[name] = template.Must(template.Must(layoutTmpl.Clone()).ParseFS(templatesFS, path))
+			slog.Debug("parsed page", "path", path, "name", name, "define_templates", tmplMap[name].DefinedTemplates())
+		}
+		return nil
+	})
+
+	if err != nil {
+		panic(fmt.Errorf("failed to load templates: %w", err))
 	}
+
+	return tmplMap
+}
+
+func NewTemplate(cfg *config.HTMLTemplateConfig) *Template {
+	if cfg.TemplateDir == "" || cfg.LayoutFile == "" || cfg.PagesDir == "" {
+		panic("invalid template configuration: template directory, layout file, and pages directory are required")
+	}
+
+	templateDir := cfg.TemplateDir + "/"
+	layoutFile := templateDir + cfg.LayoutFile
+	partialsDir := templateDir + cfg.PartialsDir
+	pagesDir := templateDir + cfg.PagesDir
+
+	layoutTmpl := template.Must(template.New("layout").Funcs(getFuncMap()).ParseFS(templatesFS, layoutFile))
+
+	parsePartials(layoutTmpl, partialsDir)
+
+	return &Template{templates: parsePages(layoutTmpl, pagesDir)}
 }
 
 func (t *Template) Render(w http.ResponseWriter, data any, name string) {
 	tmpl, ok := t.templates[name]
 
 	if !ok {
-		response.RenderError(w, response.TemplateNotFoundError(name))
+		response.RenderError(w, errtypes.ServerError(fmt.Errorf("%w: %s", ErrTemplateNotFound, name)))
 		return
 	}
 
 	var buf bytes.Buffer
 
 	if err := tmpl.Execute(&buf, data); err != nil {
-		response.RenderError(w, response.ServerError(fmt.Errorf("execute template: %v", err)))
+		response.RenderError(w, errtypes.ServerError(fmt.Errorf("%w %v", ErrTemplateExec, err)))
 		return
 	}
 
 	_, err := buf.WriteTo(w)
 
 	if err != nil {
-		response.RenderError(w, response.ServerError(err))
+		response.RenderError(w, errtypes.ServerError(fmt.Errorf("%w %v", ErrTemplateWrite, err)))
 		return
 	}
 }

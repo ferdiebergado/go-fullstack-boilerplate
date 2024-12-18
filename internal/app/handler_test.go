@@ -4,7 +4,6 @@ import (
 	"context"
 	"net/http"
 	"net/http/httptest"
-	"strings"
 	"testing"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
@@ -12,6 +11,7 @@ import (
 	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/config"
 	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/db"
 	"github.com/ferdiebergado/goexpress"
+	"github.com/ferdiebergado/gopherkit/assert"
 	"github.com/ferdiebergado/gopherkit/env"
 )
 
@@ -48,9 +48,7 @@ func TestBaseHandler(t *testing.T) {
 		expected := "Database Statistics"
 		actual := rec.Body.String()
 
-		if !strings.Contains(actual, expected) {
-			t.Errorf("Expected %s but got %s", expected, actual)
-		}
+		assert.Contains(t, actual, expected)
 	})
 
 	t.Run("GET /nonexistent should return status 404 and render 404.html", func(t *testing.T) {
@@ -66,8 +64,6 @@ func TestBaseHandler(t *testing.T) {
 		expected := "The page you are looking for does not exist."
 		actual := rec.Body.String()
 
-		if !strings.Contains(actual, expected) {
-			t.Errorf("Expected %s but got %s", expected, actual)
-		}
+		assert.Contains(t, actual, expected)
 	})
 }

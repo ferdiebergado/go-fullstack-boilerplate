@@ -1,4 +1,3 @@
-# Load environment variables from .env
 include .env
 export $(shell sed 's/=.*//' .env)
 
@@ -6,13 +5,15 @@ DB_CONTAINER := postgres
 DB_IMAGE := postgres:17.0-alpine3.20
 PROXY_CONTAINER := nginx_reverse_proxy
 PROXY_IMAGE := nginx:1.27.2-alpine3.20
+JS_RUNTIME_IMAGE := denoland/deno:alpine-2.1.4
+
 MIGRATIONS_DIR := ./internal/pkg/db/migrations
 DATABASE_URL := postgres://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)?sslmode=$(DB_SSLMODE)
 
 all: db proxy dev
 
 install:
-	which migrate || go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
+	which migrate || go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@v4.17.1
 	which air || go install github.com/air-verse/air@v1.52.2
 
 run:
@@ -53,12 +54,18 @@ force:
 	migrate -database $(DATABASE_URL) -path $(MIGRATIONS_DIR) force $(version)
 
 test:
-	go test -race ./...
+	go test -v -race ./...
 
-css-watch:
-	esbuild ./web/app/css/styles.css --bundle --outdir=./web/static/css --watch
+bundle:
+	go run tools/bundle.go
 
-js-watch:
-	esbuild ./web/app/js/**/*.js --bundle --outdir=./web/static/js --sourcemap --target=es6 --splitting --format=esm --watch
+watch-css:
+	go run tools/bundle.go -watch css || true
 
-.PHONY: run install dev db psql proxy migrate rollback drop test
+watch-ts:
+	go run tools/bundle.go -watch ts || true
+
+bundle-prod:
+	go run tools/bundle.go -prod
+
+.PHONY: run install dev db psql proxy migrate rollback drop test bundle watch-css watch-ts bundle-prod

@@ -7,8 +7,8 @@ A template to scaffold a fullstack golang web application.
 -   Standard Go Project [Layout](https://github.com/golang-standards/project-layout)
 -   Postgresql database using database/sql with [pgx](https://pkg.go.dev/github.com/jackc/pgx/stdlib) driver
 -   [Router](https://github.com/ferdiebergado/goexpress) based on net/http ServeMux
--   Templating based on html/template
--   Optimized css and js builds
+-   HTML templating using html/template
+-   Typescript support out-of-the-box
 -   Database migrations
 -   Hot reloading
 
@@ -16,7 +16,6 @@ A template to scaffold a fullstack golang web application.
 
 -   Go version 1.22 or higher
 -   Docker or Podman
--   [esbuild](https://esbuild.github.io/getting-started/)
 
 ## Usage
 
@@ -32,11 +31,11 @@ make install
 mv .env.example .env
 ```
 
-3. Change the database password (DB_PASS).
+3. Change the database password (DB_PASSWORD).
 
 ```.env
 # .env
-DB_PASS=CHANGE_ME
+DB_PASSWORD=CHANGE_ME
 ```
 
 4. Start the database.
@@ -45,7 +44,7 @@ DB_PASS=CHANGE_ME
 make db
 ```
 
-5. Run the server in development mode.
+5. Run the server in development mode with hot reloading.
 
 ```sh
 make dev
@@ -79,6 +78,12 @@ Run the rollback target.
 make rollback
 ```
 
+## Bundling assets
+
+```sh
+make bundle
+```
+
 ## Running Tests
 
 ```sh
@@ -91,4 +96,4 @@ Consult the Makefile.
 
 ## Linting
 
-This project comes with a golangci-lint config file. Just install golangci-lint to use it.
+This project comes with a golangci-lint config file. Just install golangci-lint as the defau.

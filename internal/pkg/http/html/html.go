@@ -2,7 +2,6 @@ package html
 
 import (
 	"bytes"
-	"embed"
 	"errors"
 	"fmt"
 	"html/template"
@@ -14,10 +13,8 @@ import (
 	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/config"
 	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/errtypes"
 	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/http/response"
+	"github.com/ferdiebergado/go-fullstack-boilerplate/web"
 )
-
-//go:embed templates/*
-var templatesFS embed.FS
 
 var (
 	ErrTemplateParse    = errors.New("failed to parse template")
@@ -54,12 +51,12 @@ func getFuncMap() template.FuncMap {
 
 // Parse all partial templates into the layout template
 func parsePartials(layoutTmpl *template.Template, partialsDir string) {
-	err := fs.WalkDir(templatesFS, partialsDir, func(path string, d fs.DirEntry, err error) error {
+	err := fs.WalkDir(web.TemplatesFS, partialsDir, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
 		if !d.IsDir() && strings.HasSuffix(path, suffix) {
-			_, parseErr := layoutTmpl.ParseFS(templatesFS, path)
+			_, parseErr := layoutTmpl.ParseFS(web.TemplatesFS, path)
 			if parseErr != nil {
 				return fmt.Errorf("failed to parse partial: %w", parseErr)
 			}
@@ -75,16 +72,16 @@ func parsePartials(layoutTmpl *template.Template, partialsDir string) {
 	slog.Debug("layout", "name", layoutTmpl.Name(), "defined_templates", layoutTmpl.DefinedTemplates())
 }
 
-// Load main templates from pagesDir
+// Parse main templates from pagesDir
 func parsePages(layoutTmpl *template.Template, templatePagesDir string) templateMap {
 	tmplMap := make(templateMap)
-	err := fs.WalkDir(templatesFS, templatePagesDir, func(path string, d fs.DirEntry, err error) error {
+	err := fs.WalkDir(web.TemplatesFS, templatePagesDir, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
 		if !d.IsDir() && strings.HasSuffix(path, suffix) {
 			name := strings.TrimPrefix(path, templatePagesDir+"/")
-			tmplMap[name] = template.Must(template.Must(layoutTmpl.Clone()).ParseFS(templatesFS, path))
+			tmplMap[name] = template.Must(template.Must(layoutTmpl.Clone()).ParseFS(web.TemplatesFS, path))
 			slog.Debug("parsed page", "path", path, "name", name, "define_templates", tmplMap[name].DefinedTemplates())
 		}
 		return nil
@@ -113,7 +110,7 @@ func NewTemplate(cfg *config.HTMLTemplateConfig) *Template {
 	partialsDir := templateDir + cfg.PartialsDir
 	pagesDir := templateDir + cfg.PagesDir
 
-	layoutTmpl := template.Must(template.New("layout").Funcs(getFuncMap()).ParseFS(templatesFS, layoutFile))
+	layoutTmpl := template.Must(template.New("layout").Funcs(getFuncMap()).ParseFS(web.TemplatesFS, layoutFile))
 
 	parsePartials(layoutTmpl, partialsDir)
 

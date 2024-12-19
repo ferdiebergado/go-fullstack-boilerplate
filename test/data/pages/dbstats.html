@@ -1,0 +1,73 @@
+{{define "title"}}Database Statistics{{end}}{{define "styles"}}
+<style>
+  table,
+  th,
+  td {
+    border-collapse: collapse;
+    border: 1px solid black;
+    padding: 0.6rem;
+  }
+
+  table {
+    width: 300px;
+  }
+
+  td:first-child {
+    width: 200px;
+  }
+
+  td:nth-child(2) {
+    text-align: center;
+  }
+</style>
+{{end}}{{define "content"}}
+<h1>Database Statistics</h1>
+<h2>Connection</h2>
+<table>
+  <tr>
+    <td>Max Open Connections</td>
+    <td>{{.MaxOpenConnections}}</td>
+  </tr>
+</table>
+
+<h2>Pool Status</h2>
+<table>
+  <tr>
+    <td>Open</td>
+    <td>{{.OpenConnections}}</td>
+  </tr>
+  <tr>
+    <td>In Use</td>
+    <td>{{.InUse}}</td>
+  </tr>
+  <tr>
+    <td>Idle</td>
+    <td>{{.Idle}}</td>
+  </tr>
+</table>
+
+<h2>Counters</h2>
+
+<table>
+  <tr>
+    <td>Wait Count</td>
+    <td>{{.WaitCount}}</td>
+  </tr>
+  <tr>
+    <td>Wait Duration</td>
+    <td>{{.WaitDuration}}</td>
+  </tr>
+  <tr>
+    <td>Max Idle Closed</td>
+    <td>{{.MaxIdleClosed}}</td>
+  </tr>
+  <tr>
+    <td>Max Idle Time Closed</td>
+    <td>{{.MaxIdleTimeClosed}}</td>
+  </tr>
+  <tr>
+    <td>Max Lifetime Closed</td>
+    <td>{{.MaxLifetimeClosed}}</td>
+  </tr>
+</table>
+{{end}}

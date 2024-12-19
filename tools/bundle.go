@@ -53,6 +53,15 @@ func addBasicOpts(opts api.BuildOptions) api.BuildOptions {
 	return opts
 }
 
+func enableProdOpts(opts api.BuildOptions) api.BuildOptions {
+	opts.MinifyWhitespace = true
+	opts.MinifyIdentifiers = true
+	opts.MinifySyntax = true
+	opts.Sourcemap = api.SourceMapNone
+
+	return opts
+}
+
 func build(opts api.BuildOptions) {
 	fmt.Printf("Bundling %s to %s...\n", opts.EntryPoints[0], opts.Outdir)
 	result := api.Build(opts)
@@ -63,7 +72,7 @@ func build(opts api.BuildOptions) {
 	}
 }
 
-func watchWithFsNotify(opts api.BuildOptions) {
+func watch(opts api.BuildOptions) {
 	// Set up a file watcher
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
@@ -72,19 +81,11 @@ func watchWithFsNotify(opts api.BuildOptions) {
 	defer watcher.Close()
 
 	// Watch the source directory
-	entry := opts.EntryPoints[0]
-	const unwantedSuffix = "/**/**/*.ts"
-
-	var sourceDir string
-	if strings.HasSuffix(entry, unwantedSuffix) {
-		sourceDir = strings.TrimSuffix(entry, unwantedSuffix)
-	} else {
-		sourceDir = filepath.Dir(entry)
-	}
+	sourceDir := parseSourceDir(opts.EntryPoints[0])
 
 	err = watcher.Add(sourceDir)
 	if err != nil {
-		log.Printf("watch add: %v", err)
+		log.Printf("watch add: %s %v", sourceDir, err)
 		panic("Failed to watch directory")
 	}
 
@@ -120,13 +121,17 @@ func watchWithFsNotify(opts api.BuildOptions) {
 	}
 }
 
-func enableProdOpts(opts api.BuildOptions) api.BuildOptions {
-	opts.MinifyWhitespace = true
-	opts.MinifyIdentifiers = true
-	opts.MinifySyntax = true
-	opts.Sourcemap = api.SourceMapNone
+func parseSourceDir(entry string) string {
+	const unwantedSuffix = "/**/**/*.ts"
 
-	return opts
+	var sourceDir string
+	if strings.HasSuffix(entry, unwantedSuffix) {
+		sourceDir = strings.TrimSuffix(entry, unwantedSuffix)
+	} else {
+		sourceDir = filepath.Dir(entry)
+	}
+
+	return sourceDir
 }
 
 func bailout(err error) {
@@ -162,9 +167,9 @@ func main() {
 
 		switch asset {
 		case "css":
-			watchWithFsNotify(cssOpts)
+			watch(cssOpts)
 		case "ts":
-			watchWithFsNotify(tsOpts)
+			watch(tsOpts)
 		}
 	} else {
 		buildOpts := []api.BuildOptions{

@@ -1,24 +1,60 @@
-# Use the official Go image as the base image
-FROM golang:1.22 as builder
+# Use Go 1.22 bookworm as base image
+FROM golang:1.22-bookworm AS base
 
-# Set the working directory inside the container
+# Development stage
+# =============================================================================
+# Create a development stage based on the "base" image
+FROM base AS development
+
+# Change the working directory to /app
 WORKDIR /app
 
-# Copy go.mod and go.sum files and download dependencies
+# Install the air CLI for auto-reloading
+RUN go install github.com/air-verse/air@v1.52.2
+
+# Copy the go.mod and go.sum files to the /app directory
 COPY go.mod go.sum ./
+
+# Install dependencies
 RUN go mod download
 
-# Copy the rest of the source code
+# Start air for live reloading
+CMD ["air"]
+
+# Builder stage
+# =============================================================================
+# Create a builder stage based on the "base" image
+FROM base AS builder
+
+# Move to working directory /build
+WORKDIR /build
+
+# Copy the go.mod and go.sum files to the /build directory
+COPY go.mod go.sum ./
+
+# Install dependencies
+RUN go mod download
+
+# Copy the entire source code into the container
 COPY . .
 
-# Install Air for hot reloading
-RUN go install github.com/air-verse/air@v1.52.3
+# Build the application
+# Turn off CGO to ensure static binaries
+RUN CGO_ENABLED=0 go build -o server
 
-# Set environment variables for development
-ENV GO_ENV=development
+# Production stage
+# =============================================================================
+# Create a production stage to run the application binary
+FROM scratch AS production
 
-# Expose the port the app runs on
-EXPOSE 8888
+# Move to working directory /prod
+WORKDIR /prod
 
-# Command to run the application with Air for hot reloading
-CMD ["air"]
+# Copy binary from builder stage
+COPY --from=builder /build/server ./
+
+# Document the port that may need to be published
+EXPOSE 8000
+
+# Start the application
+CMD ["/prod/server"]

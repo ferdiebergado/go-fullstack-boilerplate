@@ -1,29 +1,40 @@
-version: "3.8"
-
 services:
-  # Go Web App Service
   app:
     build:
       context: .
-    container_name: go_web_app
-    depends_on:
-      - db
+      target: ${APP_ENV}
+    container_name: gfb-app
     environment:
-      - PORT=${PORT}
-      - DATABASE_URL=${DATABASE_URL}
-    ports:
-      - "8888:8888"
+      - APP_ENV
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://app:8000/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    networks:
+      - gfb_network
     volumes:
       - .:/app:Z
-    restart: always
 
   # PostgreSQL Database Service
   db:
     image: postgres:17.0-alpine3.20
-    container_name: postgres_db
+    container_name: gfb-db
     shm_size: 128mb
     environment:
-      POSTGRES_PASSWORD: ${DB_PASS}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    env_file:
+      - ./.env.${APP_ENV}
+    healthcheck:
+      test: [CMD-SHELL, "sh -c 'pg_isready -U ${DB_USER} -d ${DB_NAME}'"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./configs/postgresql.conf:/etc/postgresql/postgresql.conf:Z
@@ -31,19 +42,52 @@ services:
     ports:
       - "5432:5432"
     restart: always
+    networks:
+      - gfb_network
 
   # Nginx Reverse Proxy Service
-  nginx:
+  proxy:
     image: nginx:1.27.2-alpine3.20
-    container_name: nginx_proxy
+    container_name: gfb-proxy
+    env_file:
+      - ./.env.${APP_ENV}
     depends_on:
-      - app
+      app:
+        condition: service_healthy
+    command: ["./wait-for-app.sh"]
     volumes:
       - ./configs/nginx.conf:/etc/nginx/nginx.conf:Z
       - ./web/static:/usr/share/nginx/html:Z
+      - ./scripts/wait-for-app.sh:/wait-for-app.sh:Z
     ports:
-      - "8080:8080"
+      - "8080:80"
     restart: always
+    networks:
+      - gfb_network
+
+  migrate:
+    image: migrate/migrate:v4.17.1
+    container_name: gfb-migrate
+    env_file:
+      - ./.env.${APP_ENV}
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - gfb_network
+    volumes:
+      - ./internal/pkg/db/migrations:/migrations:Z
+    command:
+      [
+        "-path",
+        "/migrations/",
+        "-database",
+        "postgres://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}?sslmode=${DB_SSLMODE}",
+        "up",
+      ]
 
 volumes:
-  postgres_data:
+  gfb_postgres_data:
+
+networks:
+  gfb_network:

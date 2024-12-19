@@ -26,12 +26,6 @@ var (
 	ErrTemplateWrite    = errors.New("failed to write template to the response")
 )
 
-type templateMap map[string]*template.Template
-
-type Template struct {
-	templates templateMap
-}
-
 const suffix = ".html"
 
 // Retrieve the template func maps
@@ -90,7 +84,6 @@ func parsePages(layoutTmpl *template.Template, templatePagesDir string) template
 		}
 		if !d.IsDir() && strings.HasSuffix(path, suffix) {
 			name := strings.TrimPrefix(path, templatePagesDir+"/")
-			name = strings.TrimSuffix(name, suffix)
 			tmplMap[name] = template.Must(template.Must(layoutTmpl.Clone()).ParseFS(templatesFS, path))
 			slog.Debug("parsed page", "path", path, "name", name, "define_templates", tmplMap[name].DefinedTemplates())
 		}
@@ -102,6 +95,12 @@ func parsePages(layoutTmpl *template.Template, templatePagesDir string) template
 	}
 
 	return tmplMap
+}
+
+type templateMap map[string]*template.Template
+
+type Template struct {
+	templates templateMap
 }
 
 func NewTemplate(cfg *config.HTMLTemplateConfig) *Template {

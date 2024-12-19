@@ -25,14 +25,14 @@ func NewHandler(router *goexpress.Router, service Service, cfg *config.Config, h
 }
 
 func (h *BaseHandler) HandleDashboard(w http.ResponseWriter, _ *http.Request) {
-	h.htmlTemplate.Render(w, nil, "dashboard")
+	h.htmlTemplate.Render(w, nil, "dashboard.html")
 }
 
 func (h *BaseHandler) HandleDBStats(w http.ResponseWriter, _ *http.Request) {
-	h.htmlTemplate.Render(w, h.service.Stats(), "dbstats")
+	h.htmlTemplate.Render(w, h.service.Stats(), "dbstats.html")
 }
 
 func (h *BaseHandler) HandleNotFound(w http.ResponseWriter, _ *http.Request) {
 	w.WriteHeader(http.StatusNotFound)
-	h.htmlTemplate.Render(w, nil, "404")
+	h.htmlTemplate.Render(w, nil, "404.html")
 }

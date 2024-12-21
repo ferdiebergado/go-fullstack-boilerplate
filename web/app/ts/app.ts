@@ -1,7 +1,1 @@
-const spanYear = document.getElementById("year");
-
-export function getCurrentYear(): number {
-	return new Date().getFullYear();
-}
-
-spanYear && (spanYear.textContent = getCurrentYear().toString());
+console.log("Go fullstack boilerplate running...");

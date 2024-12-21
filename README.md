@@ -1,5 +1,7 @@
 # go-fullstack-boilerplate
 
+[![Go Report Card](https://goreportcard.com/badge/github.com/ferdiebergado/go-fullstack-boilerplate)](https://goreportcard.com/report/github.com/ferdiebergado/go-fullstack-boilerplate)
+
 A template to scaffold a fullstack golang web application.
 
 ## Features

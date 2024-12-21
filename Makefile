@@ -60,10 +60,10 @@ bundle:
 	go run tools/bundle.go
 
 watch-css:
-	go run tools/bundle.go -watch css || true
+	@cd tools && go run tools/bundle.go -watch css || true
 
 watch-ts:
-	go run tools/bundle.go -watch ts || true
+	@cd tools && go run bundle.go -watch ts || true
 
 bundle-prod:
 	go run tools/bundle.go -prod

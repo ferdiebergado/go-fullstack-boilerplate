@@ -1,3 +1,5 @@
+//go:build dev
+
 package main
 
 import (
@@ -15,10 +17,10 @@ import (
 )
 
 const (
-	cssEntry  = "web/app/css/styles.css"
-	cssOutDir = "web/static/css"
-	tsEntry   = "web/app/ts/**/**/*.ts"
-	tsOutdir  = "web/static/js"
+	cssEntry  = "../web/app/css/styles.css"
+	cssOutDir = "../web/static/css"
+	tsEntry   = "../web/app/ts/**/**/*.ts"
+	tsOutdir  = "../web/static/js"
 )
 
 var ErrAssetInvalid = errors.New("invalid asset type")

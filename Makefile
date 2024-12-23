@@ -1,19 +1,25 @@
 include .env
 export $(shell sed 's/=.*//' .env)
 
+# DB
 DB_CONTAINER := postgres
 DB_IMAGE := postgres:17.0-alpine3.20
+
+# PROXY
 PROXY_CONTAINER := nginx_reverse_proxy
 PROXY_IMAGE := nginx:1.27.2-alpine3.20
-JS_RUNTIME_IMAGE := denoland/deno:alpine-2.1.4
 
+# MIGRATIONS
+MIGRATE_CONTAINER := migrate
+MIGRATE_IMAGE := migrate/migrate:v4.17.1
 MIGRATIONS_DIR := ./internal/pkg/db/migrations
-DATABASE_URL := postgres://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)?sslmode=$(DB_SSLMODE)
+MIGRATIONS_DIR_REMOTE := /migrations
+MIGRATE_CMD := $(CONTAINER) run -it --rm --network host --name $(MIGRATE_CONTAINER) -v $(MIGRATIONS_DIR):/migrations:Z $(MIGRATE_IMAGE)
+DATABASE_URL := postgres://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)?sslmode=$(DB_SSLMODE)
 
 all: db proxy dev
 
 install:
-	which migrate || go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@v4.17.1
 	which air || go install github.com/air-verse/air@v1.52.2
 
 run:
@@ -39,25 +45,25 @@ psql:
 	$(CONTAINER) exec -ti $(DB_CONTAINER) psql -U $(DB_USER) $(DB_NAME)
 
 migration:
-	migrate create -ext sql -dir $(MIGRATIONS_DIR) -seq $(name)
+	$(MIGRATE_CMD) create -ext sql -dir $(MIGRATIONS_DIR_REMOTE) -seq $(name)
 
 migrate:
-	migrate -database $(DATABASE_URL) -path $(MIGRATIONS_DIR) up $(version)
+	$(MIGRATE_CMD) -database $(DATABASE_URL) -path $(MIGRATIONS_DIR_REMOTE) up $(version)
 
 rollback:
-	migrate -database $(DATABASE_URL) -path $(MIGRATIONS_DIR) down $(version)
+	$(MIGRATE_CMD) -database $(DATABASE_URL) -path $(MIGRATIONS_DIR_REMOTE) down $(version)
 
 drop:
-	migrate -database $(DATABASE_URL) -path $(MIGRATIONS_DIR) drop
+	$(MIGRATE_CMD) -database $(DATABASE_URL) -path $(MIGRATIONS_DIR_REMOTE) drop
 
 force:
-	migrate -database $(DATABASE_URL) -path $(MIGRATIONS_DIR) force $(version)
+	$(MIGRATE_CMD) -database $(DATABASE_URL) -path $(MIGRATIONS_DIR_REMOTE) force $(version)
 
 test:
 	go test -v -race ./...
 
 bundle:
-	go run tools/bundle.go
+	@cd tools && go run tools/bundle.go
 
 watch-css:
 	@cd tools && go run tools/bundle.go -watch css || true
@@ -66,6 +72,6 @@ watch-ts:
 	@cd tools && go run bundle.go -watch ts || true
 
 bundle-prod:
-	go run tools/bundle.go -prod
+	@cd tools && go run tools/bundle.go -prod
 
 .PHONY: run install dev db psql proxy migrate rollback drop test bundle watch-css watch-ts bundle-prod

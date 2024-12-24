@@ -2,8 +2,6 @@ package main
 
 import (
 	"context"
-	"errors"
-	"fmt"
 	"log/slog"
 	"os"
 	"os/signal"
@@ -15,39 +13,14 @@ import (
 	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/http/server"
 	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/logging"
 	"github.com/ferdiebergado/goexpress"
-	"github.com/ferdiebergado/gopherkit/env"
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
-
-var ErrEnvLoad = errors.New("failed to load environment file")
-
-// Loads an environment file when in development
-func loadEnvFile() error {
-	const (
-		envVar  = "APP_ENV"
-		envFile = ".env"
-		dev     = "development"
-	)
-
-	if environment := env.Get(envVar, dev); environment == dev {
-		if err := env.Load(envFile); err != nil {
-			return fmt.Errorf("%w: %w", ErrEnvLoad, err)
-		}
-	}
-
-	return nil
-}
 
 // Run the application
 func run(ctx context.Context) error {
 	// Register OS Signal Listener
 	signalCtx, stop := signal.NotifyContext(ctx, os.Interrupt, syscall.SIGTERM)
 	defer stop()
-
-	// Load .env file when in development mode
-	if err := loadEnvFile(); err != nil {
-		return err
-	}
 
 	// Load config
 	cfg := config.Load()

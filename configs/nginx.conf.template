@@ -15,6 +15,9 @@ events {
 }
 
 http {
+	# Set the default charset to UTF-8
+	charset UTF-8;
+
 	# Copies data between one FD and other from within the kernel
 	# faster than read() + write()
 	sendfile on;
@@ -107,42 +110,25 @@ http {
 	add_header X-Frame-Options SAMEORIGIN;
 	add_header X-XSS-Protection "1; mode=block";
 
-	server {
-		listen 8081;
-		listen [::]:8081;
+	# Define upstream service
+	upstream app {
+		server app:$SERVER_PORT;
+		keepalive 64;
+	}
 
-		server_name _;
+	server {
+		listen 80;
+		listen [::]:80;
 
 		root /usr/share/nginx/html;
 
-		# Serve static files from a directory
-		location / {
-			index index.html;
+		# Serve index.html at the root path
+		location = / {
+			try_files /index.html =404;
 		}
 
-		location /js/ {
-			try_files $uri =404;
-		}
-
-		location /css/ {
-			try_files $uri =404;
-		}
-
-		# Media: images, icons, video, audio, HTC
-		location ~* \.(?:jpg|jpeg|gif|png|ico|cur|gz|svg|svgz|mp4|ogg|ogv|webm|htc)$ {
-			expires 1d;
-			access_log off;
-			add_header Cache-Control "public";
-
-			# Optional: Enable server-side caching for static files (proxy_cache)
-			open_file_cache max=1000 inactive=30s;
-			open_file_cache_valid 60s;
-			open_file_cache_min_uses 2;
-			open_file_cache_errors on;
-		}
-
-		# CSS and Javascript
-		location ~* \.(?:css|js)$ {
+		# images, icons, video, audio, HTC, CSS and Javascript
+		location ~* \.(?:jpg|jpeg|gif|png|ico|cur|gz|svg|svgz|mp4|ogg|ogv|webm|htc|css|js)$ {
 			expires 1d;
 			access_log off;
 			add_header Cache-Control "public";
@@ -155,8 +141,8 @@ http {
 		}
 
 		# Proxy requests to the Go app
-		location /api/ {
-			proxy_pass http://localhost:8888/;
+		location / {
+			proxy_pass http://app;
 			proxy_set_header Host $host;
 			proxy_set_header X-Real-IP $remote_addr;
 			proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;

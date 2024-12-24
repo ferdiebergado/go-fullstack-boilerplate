@@ -2,7 +2,7 @@
 
 [![Go Report Card](https://goreportcard.com/badge/github.com/ferdiebergado/go-fullstack-boilerplate)](https://goreportcard.com/report/github.com/ferdiebergado/go-fullstack-boilerplate)
 
-A template to scaffold a fullstack golang web application.
+A template to scaffold a fullstack go web application.
 
 ## Features
 
@@ -12,7 +12,8 @@ A template to scaffold a fullstack golang web application.
 -   HTML templating using html/template
 -   Typescript support out-of-the-box
 -   Database migrations
--   Hot reloading
+-   Hot reloading during development
+-   [nginx](https://nginx.org/en/) as web server and reverse proxy configured for high-performance
 
 ## Requirements
 
@@ -21,38 +22,36 @@ A template to scaffold a fullstack golang web application.
 
 ## Usage
 
-1. Install the cli tools.
+### Step 1
 
-```sh
-make install
-```
-
-2. Rename .env.example to .env.
+Rename .env.example to .env.
 
 ```sh
 mv .env.example .env
 ```
 
-3. Change the database password (DB_PASSWORD).
+### Step 2
+
+Change the database password (DB_PASSWORD).
 
 ```.env
 # .env
 DB_PASSWORD=CHANGE_ME
 ```
 
-4. Start the database.
+Optionally, you can also set the user and the database.
+
+### Step 3
+
+Deploy the application.
 
 ```sh
-make db
+make
 ```
 
-5. Run the server in development mode with hot reloading.
+### Step 4
 
-```sh
-make dev
-```
-
-6. Open the web application at [localhost:8888](http://locahost:8888).
+Browse the application at [localhost:8080](http://locahost:8080).
 
 ## Migrations
 
@@ -82,8 +81,28 @@ make rollback
 
 ## Bundling assets
 
+### Bundle for development
+
 ```sh
 make bundle
+```
+
+### Watch mode for css files
+
+```sh
+make watch-css
+```
+
+### Watch mode for typescript/javascript files
+
+```sh
+make watch-ts
+```
+
+### Bundle for production
+
+```sh
+make bundle-prod
 ```
 
 ## Running Tests
@@ -94,8 +113,28 @@ make test
 
 ## Other Tasks
 
-Consult the Makefile.
+### Interact with the database using psql
+
+```sh
+make psql
+```
+
+### Restart a service
+
+Provide a service argument to the restart target.
+
+-   Restart the reverse proxy:
+
+```sh
+make restart service=proxy
+```
+
+### Stop all the running containers
+
+```sh
+make stop
+```
 
 ## Linting
 
-This project comes with a golangci-lint config file. Just install golangci-lint as the defau.
+This project comes with a golangci-lint config file. Just install golangci-lint and enable it as the default linter on your editor of choice.

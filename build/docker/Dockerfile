@@ -1,6 +1,10 @@
 # Use Go 1.22 bookworm as base image
 FROM golang:1.22-bookworm AS base
 
+ENV CGO_ENABLED=0
+ENV GOOS=linux
+ENV GOARCH=amd64
+
 # Development stage
 # =============================================================================
 # Create a development stage based on the "base" image
@@ -36,25 +40,31 @@ COPY go.mod go.sum ./
 RUN go mod download
 
 # Copy the entire source code into the container
-COPY . .
+COPY cmd internal web/templates web/web.go .
 
 # Build the application
-# Turn off CGO to ensure static binaries
-RUN CGO_ENABLED=0 go build -o server
+RUN --mount=target=. \
+	--mount=type=cache,target=/go/pkg/mod \
+	--mount=type=cache,target=/root/.cache/go-build \
+	go build -ldflags="-w -s" -o /app/main ./cmd/server/main.go
 
 # Production stage
 # =============================================================================
 # Create a production stage to run the application binary
-FROM scratch AS production
+FROM gcr.io/distroless/static:nonroot as production
 
 # Move to working directory /prod
 WORKDIR /prod
 
 # Copy binary from builder stage
-COPY --from=builder /build/server ./
+# COPY --from=builder /build/server ./
+COPY --link --from=builder /build/main ./
+
+# this is the numeric version of user nonroot:nonroot to check runAsNonRoot in kubernetes
+USER 65532:65532
 
 # Document the port that may need to be published
 EXPOSE 8000
 
 # Start the application
-CMD ["/prod/server"]
+ENTRYPOINT ["/prod/main"]

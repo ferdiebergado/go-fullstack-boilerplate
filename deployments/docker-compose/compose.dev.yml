@@ -1,0 +1,39 @@
+services:
+  app:
+    build:
+      target: development
+    env_file:
+      - ../../.env
+    volumes:
+      - gfb_mod_cache:/go/pkg/mod:Z
+      - ../../.:/app:Z
+    ports:
+      - 3000:${SERVER_PORT} # Expose different port for development
+
+  db:
+    ports:
+      - 5432:5432 # Expose for local access
+    environment:
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_HOST_AUTH_METHOD=trust # Development convenience
+
+  proxy:
+    volumes:
+      - ../../configs/nginx.conf.template:/etc/nginx/nginx.conf.template:Z
+      - ../../web/static:/usr/share/nginx/html:Z
+      - ../../build/docker/scripts/start-nginx.sh:/start-nginx.sh:Z
+
+  migrate:
+    env_file:
+      - ../../.env
+    volumes:
+      - ../../internal/pkg/db/migrations:/migrations:Z
+    command:
+      [
+        "-path",
+        "/migrations/",
+        "-database",
+        "postgres://${DB_USER}@${DB_HOST}:${DB_PORT}/${DB_NAME}?sslmode=${DB_SSLMODE}",
+        "up",
+      ]

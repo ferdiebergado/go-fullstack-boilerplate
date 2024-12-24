@@ -1,0 +1,23 @@
+services:
+  app:
+    build:
+      target: production
+    deploy:
+      replicas: 3
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: "512M"
+
+  db:
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+
+  proxy:
+    build:
+      context: ../../
+      dockerfile: build/docker/nginx.Dockerfile
+    volumes:
+      - ../../configs/nginx.conf.template:/etc/nginx/nginx.conf.template:Z

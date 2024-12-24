@@ -1,0 +1,11 @@
+.git
+.env
+build/
+configs/
+deployments/
+scripts/
+test/
+tmp/
+tools/
+web/static/
+web/app/

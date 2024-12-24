@@ -7,7 +7,17 @@ args_bin = []
 bin = "./tmp/main"
 cmd = "go build -o ./tmp/main ./cmd/server/main.go"
 delay = 1000
-exclude_dir = ["assets", "tmp", "vendor", "testdata"]
+exclude_dir = [
+	"assets",
+	"tmp",
+	"vendor",
+	"testdata",
+	"deployments",
+	"configs",
+	"scripts",
+	"test",
+	"tools",
+]
 exclude_file = []
 exclude_regex = ["_test.go"]
 exclude_unchanged = false
@@ -42,7 +52,7 @@ time = false
 clean_on_exit = false
 
 [proxy]
-enabled = true
+enabled = false
 proxy_port = 8090
 app_port = 8888
 

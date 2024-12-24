@@ -4,12 +4,10 @@ export $(shell sed 's/=.*//' .env)
 # DB
 DB_CONTAINER := gfb-db
 DB_IMAGE := postgres:17.0-alpine3.20
-ifeq ($(APP_ENV),production)
-DB_PASSWORD_HOST := :$(DB_PASSWORD)@$(DB_HOST)
-else
-DB_PASSWORD_HOST := @$(DB_HOST)
+ifeq ($(APP_ENV), production)
+DB_PASSWORD_HOST := :$(DB_PASSWORD)
 endif
-DATABASE_URL := postgres://$(DB_USER)$(DB_PASSWORD_HOST):$(DB_PORT)/$(DB_NAME)?sslmode=$(DB_SSLMODE)
+DATABASE_URL := postgres://$(DB_USER)$(DB_PASSWORD_HOST)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)?sslmode=$(DB_SSLMODE)
 
 # PROXY
 PROXY_CONTAINER := gfb-proxy
@@ -20,7 +18,7 @@ MIGRATE_IMAGE := migrate/migrate:v4.17.1
 MIGRATIONS_DIR := ./internal/pkg/db/migrations
 MIGRATIONS_DIR_REMOTE := /migrations
 MIGRATE_BASE_CMD := $(CONTAINER) run -it --rm --network host -v $(MIGRATIONS_DIR):/migrations:Z $(MIGRATE_IMAGE)
-MIGRATE_CMD := $(MIGRATE_BASE_CMD) -database $(DATABASE_URL) -path $(MIGRATIONS_DIR_REMOTE)
+MIGRATE_CMD := $(MIGRATE_BASE_CMD) -database postgres://$(DB_USER)@localhost:$(DB_PORT)/$(DB_NAME)?sslmode=$(DB_SSLMODE) -path $(MIGRATIONS_DIR_REMOTE)
 
 # ASSETS
 BUNDLE_CMD := @cd tools && go run bundle.go

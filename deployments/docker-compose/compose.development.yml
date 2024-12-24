@@ -25,15 +25,8 @@ services:
       - ../../build/docker/scripts/start-nginx.sh:/start-nginx.sh:Z
 
   migrate:
-    env_file:
-      - ../../.env
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
     volumes:
       - ../../internal/pkg/db/migrations:/migrations:Z
-    command:
-      [
-        "-path",
-        "/migrations/",
-        "-database",
-        "postgres://${DB_USER}@${DB_HOST}:${DB_PORT}/${DB_NAME}?sslmode=${DB_SSLMODE}",
-        "up",
-      ]
+    command: ["-path", "/migrations/", "-database", "${DATABASE_URL}", "up"]

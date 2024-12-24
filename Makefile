@@ -4,18 +4,22 @@ export $(shell sed 's/=.*//' .env)
 # DB
 DB_CONTAINER := gfb-db
 DB_IMAGE := postgres:17.0-alpine3.20
-DATABASE_URL := postgres://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)?sslmode=$(DB_SSLMODE)
+ifeq ($(APP_ENV),production)
+DB_PASSWORD_HOST := :$(DB_PASSWORD)@$(DB_HOST)
+else
+DB_PASSWORD_HOST := @$(DB_HOST)
+endif
+DATABASE_URL := postgres://$(DB_USER)$(DB_PASSWORD_HOST):$(DB_PORT)/$(DB_NAME)?sslmode=$(DB_SSLMODE)
 
 # PROXY
 PROXY_CONTAINER := gfb-proxy
 PROXY_IMAGE := nginx:1.27.2-alpine3.20
 
 # MIGRATIONS
-MIGRATE_CONTAINER := gfb-migrate
 MIGRATE_IMAGE := migrate/migrate:v4.17.1
 MIGRATIONS_DIR := ./internal/pkg/db/migrations
 MIGRATIONS_DIR_REMOTE := /migrations
-MIGRATE_BASE_CMD := $(CONTAINER) run -it --rm --network host --name $(MIGRATE_CONTAINER) -v $(MIGRATIONS_DIR):/migrations:Z $(MIGRATE_IMAGE)
+MIGRATE_BASE_CMD := $(CONTAINER) run -it --rm --network host -v $(MIGRATIONS_DIR):/migrations:Z $(MIGRATE_IMAGE)
 MIGRATE_CMD := $(MIGRATE_BASE_CMD) -database $(DATABASE_URL) -path $(MIGRATIONS_DIR_REMOTE)
 
 # ASSETS
@@ -26,16 +30,11 @@ DEV_CMD := $(CONTAINER) run -it --rm --network host --name air -w "/app" -v ./:/
 
 # DEPLOYMENT
 COMPOSE_DIR := deployments/docker-compose
-COMPOSE_BASE_CMD := $(COMPOSE) -f $(COMPOSE_DIR)/compose.yml -f $(COMPOSE_DIR)/compose.dev.yml
+COMPOSE_BASE_CMD := $(COMPOSE) -f $(COMPOSE_DIR)/compose.yml -f $(COMPOSE_DIR)/compose.$(APP_ENV).yml
 
-.PHONY: all run dev db proxy psql migration migrate rollback drop force test bundle watch-css watch-ts bundle-prod stop restart
+.PHONY: default all run db proxy psql migration migrate rollback drop force test bundle watch-css watch-ts bundle-prod stop restart
 
-all: db proxy dev
-
-run:
-	go run ./... || true
-
-dev:
+default:
 	$(COMPOSE_BASE_CMD) up --build
 
 stop:
@@ -91,3 +90,7 @@ watch-ts:
 bundle-prod:
 	$(BUNDLE_CMD) -prod
 
+run:
+	go run ./... || true
+
+all: db proxy dev

@@ -7,5 +7,6 @@ import (
 func registerBaseRoutes(router *goexpress.Router, handler *BaseHandler) {
 	router.Get("/dashboard", handler.HandleDashboard)
 	router.Get("/dbstats", handler.HandleDBStats)
+	router.Get("/health", handler.HandleHealth)
 	router.Get("/", handler.HandleNotFound)
 }

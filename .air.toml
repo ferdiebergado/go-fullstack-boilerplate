@@ -17,6 +17,8 @@ exclude_dir = [
 	"scripts",
 	"test",
 	"tools",
+	"build",
+	"web/app",
 ]
 exclude_file = []
 exclude_regex = ["_test.go"]

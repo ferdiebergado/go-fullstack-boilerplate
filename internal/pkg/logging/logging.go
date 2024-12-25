@@ -5,7 +5,7 @@ import (
 	"os"
 )
 
-func getHandler() slog.Handler {
+func handler() slog.Handler {
 	logLevel := new(slog.LevelVar)
 
 	opts := &slog.HandlerOptions{
@@ -25,8 +25,8 @@ func getHandler() slog.Handler {
 	return handler
 }
 
-func SetLogger() {
-	handler := getHandler()
+func Init() {
+	handler := handler()
 	logger := slog.New(handler)
 	slog.SetDefault(logger)
 }

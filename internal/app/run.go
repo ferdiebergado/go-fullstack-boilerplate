@@ -16,8 +16,8 @@ import (
 
 // Run the application
 func Run(ctx context.Context) error {
-	// Set the logger
-	logging.SetLogger()
+	// Initialize the logger
+	logging.Init()
 	slog.Info("Running application...")
 
 	// Register OS Signal Listener

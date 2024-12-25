@@ -7,7 +7,8 @@ services:
     volumes:
       - gfb_mod_cache:/go/pkg/mod:Z
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://app:${SERVER_PORT}/health || exit 1"]
+      test:
+        ["CMD-SHELL", "curl -f http://app:${SERVER_PORT}/api/health || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -27,8 +28,7 @@ services:
       - POSTGRES_DB=${DB_NAME}
       - POSTGRES_PASSWORD=${DB_PASSWORD}
     healthcheck:
-      test:
-        [CMD-SHELL, "sh -c 'pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}'"]
+      test: [CMD-SHELL, "sh -c 'pg_isready -U ${DB_USER} -d ${DB_NAME}'"]
       interval: 10s
       timeout: 5s
       retries: 5

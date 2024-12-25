@@ -1,7 +1,9 @@
-.git
+.git/
+.vscode/
 .env
 build/
 configs/
+db/
 deployments/
 scripts/
 test/

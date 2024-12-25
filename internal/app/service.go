@@ -4,40 +4,27 @@ import (
 	"context"
 	"database/sql"
 	"runtime"
+
+	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/config"
 )
 
 type service struct {
 	repo Repo
+	cfg  *config.Config
 }
 
 type Service interface {
 	DBStats(context.Context) (*DBHealth, error)
+	CPUStats() *CPUHealth
 	MemStats() *RAMHealth
 	Ping(context.Context) error
 }
 
-func NewService(repo Repo) Service {
+func NewService(repo Repo, cfg *config.Config) Service {
 	return &service{
 		repo: repo,
+		cfg:  cfg,
 	}
-}
-
-type DBHealth struct {
-	Status string       `json:"status"`
-	Stats  *sql.DBStats `json:"stats,omitempty"`
-}
-
-type RAMHealth struct {
-	Status string       `json:"status"`
-	Stats  *MemoryStats `json:"stats,omitempty"`
-}
-
-// MemoryStats holds the memory usage information
-type MemoryStats struct {
-	Alloc      float64 `json:"alloc"`       // bytes allocated and not yet freed
-	TotalAlloc float64 `json:"total_alloc"` // bytes allocated (even if freed)
-	Sys        float64 `json:"sys"`         // bytes obtained from the OS
-	NumGC      uint32  `json:"num_gc"`      // number of garbage collections
 }
 
 const bytesMB = 1048576
@@ -45,6 +32,19 @@ const bytesMB = 1048576
 // ConvertBytesToMB converts bytes to megabytes using binary definition
 func ConvertBytesToMB(bytes uint64) float64 {
 	return float64(bytes) / bytesMB // 1 MB = 1,048,576 Bytes
+}
+
+type DBStats struct {
+	Driver string       `json:"driver"`
+	DB     string       `json:"db"`
+	Host   string       `json:"host"`
+	Port   string       `json:"port"`
+	Stats  *sql.DBStats `json:"stats,omitempty"`
+}
+
+type DBHealth struct {
+	Status string   `json:"status"`
+	Stats  *DBStats `json:"stats,omitempty"`
 }
 
 func (s *service) DBStats(ctx context.Context) (*DBHealth, error) {
@@ -58,8 +58,47 @@ func (s *service) DBStats(ctx context.Context) (*DBHealth, error) {
 
 	return &DBHealth{
 		Status: "up",
-		Stats:  &stats,
+		Stats: &DBStats{
+			Stats:  &stats,
+			Driver: s.cfg.DB.Driver,
+			DB:     s.cfg.DB.DB,
+			Host:   s.cfg.DB.Host,
+			Port:   s.cfg.DB.Port,
+		},
 	}, nil
+}
+
+func (s *service) Ping(ctx context.Context) error {
+	return s.repo.Ping(ctx)
+}
+
+type CPUHealth struct {
+	Status string
+	Stats  map[string]int
+}
+
+func (s *service) CPUStats() *CPUHealth {
+	numCPUs := runtime.NumCPU()
+
+	return &CPUHealth{
+		Status: "up",
+		Stats: map[string]int{
+			"num_cpus": numCPUs,
+		},
+	}
+}
+
+type RAMHealth struct {
+	Status string       `json:"status"`
+	Stats  *MemoryStats `json:"stats,omitempty"`
+}
+
+// MemoryStats holds the memory usage information
+type MemoryStats struct {
+	Alloc      float64 `json:"alloc"`       // bytes allocated and not yet freed
+	TotalAlloc float64 `json:"total_alloc"` // bytes allocated (even if freed)
+	Sys        float64 `json:"sys"`         // bytes obtained from the OS
+	NumGC      uint32  `json:"num_gc"`      // number of garbage collections
 }
 
 func (s *service) MemStats() *RAMHealth {
@@ -77,8 +116,4 @@ func (s *service) MemStats() *RAMHealth {
 		Status: "up",
 		Stats:  stats,
 	}
-}
-
-func (s *service) Ping(ctx context.Context) error {
-	return s.repo.Ping(ctx)
 }

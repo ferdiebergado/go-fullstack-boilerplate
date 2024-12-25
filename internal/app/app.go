@@ -30,7 +30,7 @@ func (a *App) registerGlobalMiddlewares() {
 
 func (a *App) AddBaseHandler() *BaseHandler {
 	repo := NewRepo(a.db, &a.config.DB)
-	service := NewService(repo)
+	service := NewService(repo, a.config)
 	htmlTemplate := html.NewTemplate(&a.config.HTML)
 	return NewHandler(a.router, service, a.config, htmlTemplate)
 }

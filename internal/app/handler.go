@@ -36,8 +36,8 @@ func (h *BaseHandler) HandleDBStats(w http.ResponseWriter, _ *http.Request) {
 }
 
 type Health struct {
-	CPU map[string]any `json:"cpu,omitempty"`
-	RAM *RAMHealth     `json:"ram,omitempty"`
+	CPU *CPUHealth `json:"cpu,omitempty"`
+	RAM *RAMHealth `json:"ram,omitempty"`
 }
 
 type ComponentHealth struct {
@@ -67,11 +67,13 @@ func (h *BaseHandler) HandleHealthCheck(w http.ResponseWriter, r *http.Request) 
 		response.RenderError(w, healthErr, healthResponse)
 	}
 
+	cpuHealth := h.service.CPUStats()
 	ramHealth := h.service.MemStats()
-
 	healthResponse := &HealthResponse{
-		Status:     "healthy",
-		Components: ComponentHealth{DB: dbHealth, App: &Health{RAM: ramHealth}},
+		Status: "healthy",
+		Components: ComponentHealth{DB: dbHealth, App: &Health{
+			CPU: cpuHealth,
+			RAM: ramHealth}},
 	}
 
 	if err := gkitResponse.JSON(w, http.StatusOK, healthResponse); err != nil {

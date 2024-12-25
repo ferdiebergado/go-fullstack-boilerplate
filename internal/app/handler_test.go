@@ -12,21 +12,16 @@ import (
 	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/db"
 	"github.com/ferdiebergado/goexpress"
 	"github.com/ferdiebergado/gopherkit/assert"
-	"github.com/ferdiebergado/gopherkit/env"
 )
 
 func TestBaseHandler(t *testing.T) {
-	if err := env.Load("../../.env"); err != nil {
-		t.Fatal("missing .env file")
-	}
-
 	cfg := config.Load()
 
 	database := db.New(cfg.DB)
 	conn, err := database.Connect(context.Background())
 
 	if err != nil {
-		t.Fatal("can't connect to the database")
+		t.Fatalf("can't connect to the database: %v", err)
 	}
 
 	defer database.Disconnect()

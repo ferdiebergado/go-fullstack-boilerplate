@@ -8,7 +8,6 @@ import (
 	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/http/html"
 	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/http/response"
 	"github.com/ferdiebergado/goexpress"
-	gkitResponse "github.com/ferdiebergado/gopherkit/http/response"
 )
 
 type BaseHandler struct {
@@ -76,14 +75,7 @@ func (h *BaseHandler) HandleHealthCheck(w http.ResponseWriter, r *http.Request) 
 			RAM: ramHealth}},
 	}
 
-	if err := gkitResponse.JSON(w, http.StatusOK, healthResponse); err != nil {
-		jsonErr := &errtypes.HTTPError{
-			AppError: &errtypes.AppError{Description: "failed to encode to json", Err: err, Severity: errtypes.High},
-			Code:     http.StatusInternalServerError,
-		}
-
-		response.RenderError[any](w, jsonErr, nil)
-	}
+	response.RenderJSON(w, healthResponse)
 }
 
 func (h *BaseHandler) HandleNotFound(w http.ResponseWriter, _ *http.Request) {

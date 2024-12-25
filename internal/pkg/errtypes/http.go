@@ -17,3 +17,10 @@ func ServerError(err error) *HTTPError {
 		Code: http.StatusInternalServerError,
 	}
 }
+
+func JSONEncodeError(err error) *HTTPError {
+	return &HTTPError{
+		AppError: &AppError{Description: "failed to encode json", Err: err, Severity: High},
+		Code:     http.StatusInternalServerError,
+	}
+}

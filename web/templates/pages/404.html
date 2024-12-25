@@ -1,4 +1,57 @@
-{{define "title"}}Page not found{{end}}{{define "content"}}
-<h1>Page not found</h1>
-<p>The page you are looking for does not exist.</p>
+{{define "title"}}Page not found{{end}} {{define "styles"}}
+<style>
+  header {
+    display: none;
+  }
+
+  .hero {
+    font-family: sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    margin: 0;
+    padding: 0;
+    background-color: #50b7e0;
+    color: white;
+    box-sizing: border-box;
+  }
+
+  .wrapper {
+    text-align: center;
+  }
+
+  .title {
+    font-size: 3.5rem;
+    margin: 0;
+  }
+
+  .subtitle {
+    font-size: 1.7rem;
+    font-weight: 300;
+    margin: 0;
+  }
+
+  .backBtn {
+    padding: 1rem 2rem;
+    border-radius: 30px;
+    text-decoration: none;
+    font-size: 1.3rem;
+    font-weight: bold;
+    background-color: white;
+    color: #000;
+    display: inline-block;
+    margin-top: 2.5rem;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+      0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  }
+</style>
+{{end}} {{define "content"}}
+<div class="hero">
+  <article class="wrapper">
+    <h1 class="title">Page not found</h1>
+    <h2 class="subtitle">The page you were looking for does not exist.</h2>
+    <a class="backBtn" href="javascript:window.history.back()">Go back</a>
+  </article>
+</div>
 {{end}}

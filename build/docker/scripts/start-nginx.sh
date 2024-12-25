@@ -10,7 +10,7 @@ terminate() {
 trap terminate SIGTERM
 
 # Wait for the app to become ready
-until curl -s http://app:$SERVER_PORT/health; do
+until curl -s http://app:$SERVER_PORT/api/health; do
 	echo "Waiting for app on port: $SERVER_PORT..."
 	sleep 2
 done

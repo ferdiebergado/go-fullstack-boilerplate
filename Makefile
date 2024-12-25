@@ -30,7 +30,7 @@ DEV_CMD := $(CONTAINER) run -it --rm --network host --name air -w "/app" -v ./:/
 COMPOSE_DIR := deployments/docker-compose
 COMPOSE_BASE_CMD := $(COMPOSE) -f $(COMPOSE_DIR)/compose.yml -f $(COMPOSE_DIR)/compose.$(APP_ENV).yml
 
-.PHONY: default all run db proxy psql migration migrate rollback drop force test bundle watch-css watch-ts bundle-prod stop restart
+.PHONY: default all run db proxy psql migration migrate rollback drop force test bundle watch-css watch-ts bundle-prod stop restart dump-url
 
 default:
 	$(COMPOSE_BASE_CMD) up --build
@@ -58,6 +58,9 @@ proxy:
 psql:
 	$(CONTAINER) exec -ti $(DB_CONTAINER) psql -U $(DB_USER) $(DB_NAME)
 
+dump-url:
+	@echo DATABASE_URL=$(DATABASE_URL)
+
 migration:
 	$(MIGRATE_BASE_CMD) create -ext sql -dir $(MIGRATIONS_DIR_REMOTE) -seq $(name)
 
@@ -74,7 +77,7 @@ force:
 	$(MIGRATE_CMD) force $(version)
 
 test:
-	go test -v -race ./...
+	DB_HOST=localhost go test -v -race ./...
 
 bundle:
 	$(BUNDLE_CMD)
@@ -91,4 +94,4 @@ bundle-prod:
 run:
 	go run ./... || true
 
-all: db proxy dev
+all: db proxy run

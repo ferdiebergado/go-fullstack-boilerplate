@@ -54,15 +54,11 @@ make migration name=create_users_table
 
 ### Run Migrations
 
-Run the migrate target.
-
 ```sh
 make migrate
 ```
 
 ### Rollback Migrations
-
-Run the rollback target.
 
 ```sh
 make rollback

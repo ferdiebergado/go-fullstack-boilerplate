@@ -121,21 +121,21 @@ func (t *Template) Render(w http.ResponseWriter, data any, name string) {
 	tmpl, ok := t.templates[name]
 
 	if !ok {
-		response.RenderError(w, errtypes.ServerError(fmt.Errorf("%w: %s", ErrTemplateNotFound, name)))
+		response.RenderError[any](w, errtypes.ServerError(fmt.Errorf("%w: %s", ErrTemplateNotFound, name)), nil)
 		return
 	}
 
 	var buf bytes.Buffer
 
 	if err := tmpl.Execute(&buf, data); err != nil {
-		response.RenderError(w, errtypes.ServerError(fmt.Errorf("%w %v", ErrTemplateExec, err)))
+		response.RenderError[any](w, errtypes.ServerError(fmt.Errorf("%w %v", ErrTemplateExec, err)), nil)
 		return
 	}
 
 	_, err := buf.WriteTo(w)
 
 	if err != nil {
-		response.RenderError(w, errtypes.ServerError(fmt.Errorf("%w %v", ErrTemplateWrite, err)))
+		response.RenderError[any](w, errtypes.ServerError(fmt.Errorf("%w %v", ErrTemplateWrite, err)), nil)
 		return
 	}
 }

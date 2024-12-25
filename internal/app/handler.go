@@ -4,8 +4,11 @@ import (
 	"net/http"
 
 	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/config"
+	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/errtypes"
 	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/http/html"
+	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/http/response"
 	"github.com/ferdiebergado/goexpress"
+	gkitResponse "github.com/ferdiebergado/gopherkit/http/response"
 )
 
 type BaseHandler struct {
@@ -29,15 +32,55 @@ func (h *BaseHandler) HandleDashboard(w http.ResponseWriter, _ *http.Request) {
 }
 
 func (h *BaseHandler) HandleDBStats(w http.ResponseWriter, _ *http.Request) {
-	h.htmlTemplate.Render(w, h.service.Stats(), "dbstats.html")
+	h.htmlTemplate.Render(w, nil, "dbstats.html")
 }
 
-func (h *BaseHandler) HandleHealth(w http.ResponseWriter, _ *http.Request) {
-	w.WriteHeader(http.StatusOK)
-	_, err := w.Write([]byte("Server is healthy."))
+type Health struct {
+	CPU map[string]any `json:"cpu,omitempty"`
+	RAM *RAMHealth     `json:"ram,omitempty"`
+}
+
+type ComponentHealth struct {
+	DB  *DBHealth `json:"db,omitempty"`
+	App *Health   `json:"app,omitempty"`
+}
+
+type HealthResponse struct {
+	Status     string          `json:"status"`
+	Components ComponentHealth `json:"components"`
+}
+
+func (h *BaseHandler) HandleHealthCheck(w http.ResponseWriter, r *http.Request) {
+	dbHealth, err := h.service.DBStats(r.Context())
 
 	if err != nil {
-		http.Error(w, "Unable to write to response", http.StatusInternalServerError)
+		healthResponse := &HealthResponse{
+			Status:     "unhealthy",
+			Components: ComponentHealth{DB: dbHealth},
+		}
+
+		healthErr := &errtypes.HTTPError{
+			AppError: &errtypes.AppError{Description: err.Error(), Err: err, Severity: errtypes.High},
+			Code:     http.StatusServiceUnavailable,
+		}
+
+		response.RenderError(w, healthErr, healthResponse)
+	}
+
+	ramHealth := h.service.MemStats()
+
+	healthResponse := &HealthResponse{
+		Status:     "healthy",
+		Components: ComponentHealth{DB: dbHealth, App: &Health{RAM: ramHealth}},
+	}
+
+	if err := gkitResponse.JSON(w, http.StatusOK, healthResponse); err != nil {
+		jsonErr := &errtypes.HTTPError{
+			AppError: &errtypes.AppError{Description: "failed to encode to json", Err: err, Severity: errtypes.High},
+			Code:     http.StatusInternalServerError,
+		}
+
+		response.RenderError[any](w, jsonErr, nil)
 	}
 }
 

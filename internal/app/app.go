@@ -29,7 +29,7 @@ func (a *App) registerGlobalMiddlewares() {
 }
 
 func (a *App) AddBaseHandler() *BaseHandler {
-	repo := NewRepo(a.db)
+	repo := NewRepo(a.db, &a.config.DB)
 	service := NewService(repo)
 	htmlTemplate := html.NewTemplate(&a.config.HTML)
 	return NewHandler(a.router, service, a.config, htmlTemplate)

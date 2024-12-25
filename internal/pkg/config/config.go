@@ -60,9 +60,9 @@ func Load() *Config {
 			User:               env.MustGet("DB_USER"),
 			Password:           env.MustGet("DB_PASSWORD"),
 			SSLMode:            env.MustGet("DB_SSLMODE"),
-			ConnMaxLifetime:    0,
-			MaxIdleConnections: 50,
-			MaxOpenConnections: 50,
+			ConnMaxLifetime:    time.Duration(env.GetInt("DB_CONN_MAX_LIFETIME", 0)),
+			MaxIdleConnections: env.GetInt("DB_MAX_IDLE_CONNS", 50),
+			MaxOpenConnections: env.GetInt("DB_MAX_OPEN_CONNS", 50),
 			PingTimeout:        time.Duration(env.GetInt("DB_PING_TIMEOUT", 5)) * time.Second,
 		},
 		HTML: HTMLTemplateConfig{

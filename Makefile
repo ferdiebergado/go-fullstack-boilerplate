@@ -15,7 +15,7 @@ PROXY_IMAGE := nginx:1.27.2-alpine3.20
 
 # MIGRATIONS
 MIGRATE_IMAGE := migrate/migrate:v4.17.1
-MIGRATIONS_DIR := ./internal/pkg/db/migrations
+MIGRATIONS_DIR := ./db/migrations
 MIGRATIONS_DIR_REMOTE := /migrations
 MIGRATE_BASE_CMD := $(CONTAINER) run -it --rm --network host -v $(MIGRATIONS_DIR):/migrations:Z $(MIGRATE_IMAGE)
 MIGRATE_CMD := $(MIGRATE_BASE_CMD) -database postgres://$(DB_USER)@localhost:$(DB_PORT)/$(DB_NAME)?sslmode=$(DB_SSLMODE) -path $(MIGRATIONS_DIR_REMOTE)

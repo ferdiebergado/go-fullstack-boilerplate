@@ -26,7 +26,7 @@ services:
 
   migrate:
     volumes:
-      - ../../internal/pkg/db/migrations:/migrations:Z
+      - ../../db/migrations:/migrations:Z
     command:
       [
         "-path",

@@ -3,14 +3,14 @@ const thead = datatable?.querySelector("thead");
 const tbody = datatable?.querySelector("tbody");
 const endpoint = datatable?.dataset.url;
 
-interface TableHeaders {
-	Label: string;
-	Field: string;
-}
+type TableHeaders = {
+	label: string;
+	field: string;
+};
 
-const tblHeaders = JSON.parse(
+const tblHeaders: TableHeaders[] = JSON.parse(
 	datatable?.dataset.headers || "[]"
-) as TableHeaders[];
+);
 
 const tblData = JSON.parse(datatable?.dataset.data || "[]");
 
@@ -19,7 +19,7 @@ function renderTHead() {
 	const row = document.createElement("tr");
 	tblHeaders.forEach((data) => {
 		const th = document.createElement("th");
-		th.textContent = data.Label;
+		th.textContent = data.label;
 		row.appendChild(th);
 	});
 	fragment.appendChild(row);

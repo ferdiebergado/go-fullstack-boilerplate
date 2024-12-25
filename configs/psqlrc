@@ -1,23 +1,36 @@
+-- CREDITS:
+-- https://www.crunchydata.com/blog/magic-tricks-for-postgres-psql-settings-presets-cho-and-saved-queries?ref=dailydev
+
 -- Don't log these commands at the beginning of the file
 \set QUIET 1
+
 --Automatically format expanded display for wide columns
 \x auto
+
 -- Clean border around output of queries
 \pset border 2
+
 --Outline table borders and separators using Unicode characters
 \pset linestyle unicode
+
 -- Always show query time
 \timing
+
 -- Set Null char output to differentiate it from empty string
 \pset null '👻'
+
 -- Number of commands to save in history
 \set HISTSIZE 2000
+
 -- output any SQL run by psql slash commands
 \set ECHO_HIDDEN on
+
 -- Have psql echo back queries
 \set ECHO queries
+
 -- Create a prompt with host, database name, date, and time
 \set PROMPT1 '%m@%/ %`date "+%Y-%m-%d %H:%M:%S"`> '
+
 -- queries
 \set long_running 'SELECT pid, now() - pg_stat_activity.xact_start AS duration, query, state FROM pg_stat_activity WHERE (now() - pg_stat_activity.xact_start) > interval ''5 minutes'' ORDER by 2 DESC;'
 \set cache_hit 'SELECT ''index hit rate'' AS name, (sum(idx_blks_hit)) / nullif(sum(idx_blks_hit + idx_blks_read),0) AS ratio FROM pg_statio_user_indexes UNION ALL SELECT ''table hit rate'' AS name, sum(heap_blks_hit) / nullif(sum(heap_blks_hit) + sum(heap_blks_read),0) AS ratio FROM pg_statio_user_tables;'
@@ -26,4 +39,4 @@
 \set users 'SELECT usename, state, count(1) cnt FROM pg_stat_activity WHERE usename is not null GROUP BY usename, state ORDER BY usename, state;'
 
 -- Reset command logging at the end of the file
-\set QUIET 0 
+\set QUIET 0

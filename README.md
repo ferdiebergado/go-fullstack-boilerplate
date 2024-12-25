@@ -32,30 +32,19 @@ mv .env.example .env
 
 ### Step 2
 
-Change the database password (DB_PASSWORD).
-
-```.env
-# .env
-DB_PASSWORD=CHANGE_ME
-```
-
-Optionally, you can also set the user and the database.
-
-### Step 3
-
 Deploy the application.
 
 ```sh
 make
 ```
 
-### Step 4
+### Step 3
 
 Browse the application at [localhost:8080](http://locahost:8080).
 
 ## Migrations
 
-### Creating Migrations
+### Create Migrations
 
 Run the migration target with the name argument set to the name of the migration.
 
@@ -63,7 +52,7 @@ Run the migration target with the name argument set to the name of the migration
 make migration name=create_users_table
 ```
 
-### Running Migrations
+### Run Migrations
 
 Run the migrate target.
 
@@ -71,7 +60,7 @@ Run the migrate target.
 make migrate
 ```
 
-### Rolling Back Migrations
+### Rollback Migrations
 
 Run the rollback target.
 
@@ -79,7 +68,17 @@ Run the rollback target.
 make rollback
 ```
 
-## Bundling assets
+### Recover from a Failed Migration
+
+When a migration fails, fix the error and force the version of the failed migration.
+Then run the migration again.
+
+```sh
+make force version=1
+make migrate
+```
+
+## Bundling of Assets
 
 ### Bundle for development
 
@@ -105,7 +104,7 @@ make watch-ts
 make bundle-prod
 ```
 
-## Running Tests
+## Tests
 
 ```sh
 make test
@@ -122,8 +121,6 @@ make psql
 ### Restart a service
 
 Provide a service argument to the restart target.
-
--   Restart the reverse proxy:
 
 ```sh
 make restart service=proxy

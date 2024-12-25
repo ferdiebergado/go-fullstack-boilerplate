@@ -35,11 +35,11 @@ func ConvertBytesToMB(bytes uint64) float64 {
 }
 
 type DBStats struct {
-	Driver string       `json:"driver"`
-	DB     string       `json:"db"`
-	Host   string       `json:"host"`
-	Port   string       `json:"port"`
-	Stats  *sql.DBStats `json:"stats,omitempty"`
+	Driver string      `json:"driver"`
+	DB     string      `json:"db"`
+	Host   string      `json:"host"`
+	Port   string      `json:"port"`
+	Stats  sql.DBStats `json:"stats"`
 }
 
 type DBHealth struct {
@@ -54,17 +54,17 @@ func (s *service) DBStats(ctx context.Context) (*DBHealth, error) {
 		}, err
 	}
 
-	stats := s.repo.Stats()
+	dbstats := &DBStats{
+		Stats:  s.repo.Stats(),
+		Driver: s.cfg.DB.Driver,
+		DB:     s.cfg.DB.DB,
+		Host:   s.cfg.DB.Host,
+		Port:   s.cfg.DB.Port,
+	}
 
 	return &DBHealth{
 		Status: "up",
-		Stats: &DBStats{
-			Stats:  &stats,
-			Driver: s.cfg.DB.Driver,
-			DB:     s.cfg.DB.DB,
-			Host:   s.cfg.DB.Host,
-			Port:   s.cfg.DB.Port,
-		},
+		Stats:  dbstats,
 	}, nil
 }
 

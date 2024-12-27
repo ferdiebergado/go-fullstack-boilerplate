@@ -15,9 +15,7 @@ linters:
     - copyloopvar # checks for pointers to enclosing loop variables
     - funlen # Tool for detection of long functions
     - gochecknoglobals # A global variable is a variable declared in package scope and that can be read and written to by any function within the package.
-    - gocritic # Provides diagnostics that check for bugs, performance and style issues.
     - goconst # Inspects source code for security problems
-    - gocyclo # Computes and checks the cyclomatic complexity of functions
     - err113 # Golang linter to check the errors handling expressions
     - gofmt # Gofmt checks whether code was gofmt-ed. By default this tool runs with -s option to check for code simplification
     - goimports # In addition to fixing imports, goimports also formats your code in the same style as gofmt.

@@ -131,3 +131,7 @@ make stop
 ## Linting
 
 This project comes with a golangci-lint config file. Just install golangci-lint and enable it as the default linter on your editor of choice.
+
+## License
+
+This project is distributed under the MIT License. See [LICENSE](https://github.com/ferdiebergado/go-fullstack-boilerplate/blob/main/LICENSE) for more details.

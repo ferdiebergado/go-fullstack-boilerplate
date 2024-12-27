@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -11,6 +12,7 @@ import (
 	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/config"
 	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/db"
 	"github.com/ferdiebergado/goexpress"
+
 	"github.com/ferdiebergado/gopherkit/assert"
 )
 
@@ -30,18 +32,19 @@ func TestBaseHandler(t *testing.T) {
 	application := New(cfg, conn, router)
 	application.SetupRouter()
 
-	t.Run("GET /dbstats should return status 200 and render dbstats.html", func(t *testing.T) {
-		req := httptest.NewRequest(http.MethodGet, "/dbstats", nil)
+	t.Run("GET /api/health should return status 200 and render json", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodGet, "/api/health", nil)
 		rec := httptest.NewRecorder()
 
 		router.ServeHTTP(rec, req)
 
 		assert.Equal(t, http.StatusOK, rec.Code)
 
-		expected := "Database Statistics"
-		actual := rec.Body.String()
+		var result HealthResponse
+		err := json.NewDecoder(rec.Body).Decode(&result)
 
-		assert.Contains(t, actual, expected)
+		assert.NoError(t, err)
+		assert.Equal(t, "healthy", result.Status)
 	})
 
 	t.Run("GET /nonexistent should return status 404 and render 404.html", func(t *testing.T) {
@@ -52,7 +55,7 @@ func TestBaseHandler(t *testing.T) {
 
 		assert.Equal(t, http.StatusNotFound, rec.Code)
 
-		expected := "The page you are looking for does not exist."
+		expected := "The page you were looking for does not exist."
 		actual := rec.Body.String()
 
 		assert.Contains(t, actual, expected)

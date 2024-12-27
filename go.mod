@@ -4,7 +4,7 @@ go 1.22.9
 
 require (
 	github.com/ferdiebergado/goexpress v0.2.3
-	github.com/ferdiebergado/gopherkit v0.0.3
+	github.com/ferdiebergado/gopherkit v0.0.4
 	github.com/jackc/pgx/v5 v5.7.1
 )
 

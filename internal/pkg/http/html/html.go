@@ -132,6 +132,7 @@ func (t *Template) Render(w http.ResponseWriter, data any, name string) {
 		return
 	}
 
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	_, err := buf.WriteTo(w)
 
 	if err != nil {

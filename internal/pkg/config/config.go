@@ -47,10 +47,10 @@ func Load() *Config {
 		Server: HTTPServerConfig{
 			Addr:            env.Get("SERVER_HOST", "0.0.0.0"),
 			Port:            env.Get("SERVER_PORT", "8888"),
-			ShutdownTimeout: 10 * time.Second,
-			ReadTimeout:     10 * time.Second,
-			WriteTimeout:    10 * time.Second,
-			IdleTimeout:     60 * time.Second,
+			ShutdownTimeout: time.Duration(env.GetInt("SERVER_SHUTDOWN_TIMEOUT", 10)) * time.Second,
+			ReadTimeout:     time.Duration(env.GetInt("SERVER_READ_TIMEOUT", 10)) * time.Second,
+			WriteTimeout:    time.Duration(env.GetInt("SERVER_WRITE_TIMEOUT", 10)) * time.Second,
+			IdleTimeout:     time.Duration(env.GetInt("SERVER_IDLE_TIMEOUT", 60)) * time.Second,
 		},
 		DB: DBConfig{
 			Driver:             "pgx",

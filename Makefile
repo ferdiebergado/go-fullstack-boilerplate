@@ -94,4 +94,8 @@ bundle-prod:
 run:
 	go run ./... || true
 
+vulncheck:
+	@which govulncheck || go install golang.org/x/vuln/cmd/govulncheck@latest
+	govulncheck -show verbose ./...
+
 all: db proxy run

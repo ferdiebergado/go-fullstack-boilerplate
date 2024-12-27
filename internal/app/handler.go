@@ -1,6 +1,7 @@
 package app
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/config"
@@ -49,8 +50,8 @@ type HealthResponse struct {
 	Components ComponentHealth `json:"components"`
 }
 
-func (h *BaseHandler) HandleHealthCheck(w http.ResponseWriter, r *http.Request) {
-	dbHealth, err := h.service.DBStats(r.Context())
+func (h *BaseHandler) performHealthCheck(ctx context.Context) (*HealthResponse, *errtypes.HTTPError) {
+	dbHealth, err := h.service.DBStats(ctx)
 
 	if err != nil {
 		healthResponse := &HealthResponse{
@@ -63,7 +64,7 @@ func (h *BaseHandler) HandleHealthCheck(w http.ResponseWriter, r *http.Request) 
 			Code:     http.StatusServiceUnavailable,
 		}
 
-		response.RenderError(w, healthErr, healthResponse)
+		return healthResponse, healthErr
 	}
 
 	cpuHealth := h.service.CPUStats()
@@ -75,7 +76,17 @@ func (h *BaseHandler) HandleHealthCheck(w http.ResponseWriter, r *http.Request) 
 			RAM: ramHealth}},
 	}
 
-	response.RenderJSON(w, healthResponse)
+	return healthResponse, nil
+}
+
+func (h *BaseHandler) HandleHealthCheck(w http.ResponseWriter, r *http.Request) {
+	health, err := h.performHealthCheck(r.Context())
+
+	if err != nil {
+		response.RenderError(w, err, health)
+	}
+
+	response.RenderJSON(w, health)
 }
 
 func (h *BaseHandler) HandleNotFound(w http.ResponseWriter, _ *http.Request) {

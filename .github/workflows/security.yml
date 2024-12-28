@@ -11,7 +11,8 @@ on:
 jobs:
   security-checks:
     runs-on: ubuntu-latest
-
+    env:
+      GO111MODULE: on
     steps:
       - name: Checkout code
         uses: actions/checkout@v3

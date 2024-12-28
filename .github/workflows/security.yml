@@ -42,12 +42,13 @@ jobs:
       - name: Check if Dockerfile exists in subdirectory
         id: dockerfile-check
         run: |
-          if [ -f "build/docker/Dockerfile" ]; then
+          if [ -f ./build/docker/Dockerfile ]; then
             echo "Dockerfile found in build/docker/ directory"
             echo "dockerfile_exists=true" >> $GITHUB_ENV
           else
             echo "Dockerfile not found"
             echo "dockerfile_exists=false" >> $GITHUB_ENV
+          fi
 
       - name: Container scanning with Trivy
         if: env.dockerfile_exists == 'true'

@@ -20,7 +20,7 @@ A template to scaffold a fullstack go web application.
 -   Go version 1.22 or higher
 -   Docker or Podman
 
-## Usage
+## Getting Started
 
 ### Step 1
 
@@ -74,7 +74,7 @@ make force version=1
 make migrate
 ```
 
-## Bundling of Assets
+## Bundling Assets
 
 ### Bundle for development
 
@@ -135,3 +135,7 @@ This project comes with a golangci-lint config file. Just install golangci-lint 
 ## License
 
 This project is distributed under the MIT License. See [LICENSE](https://github.com/ferdiebergado/go-fullstack-boilerplate/blob/main/LICENSE) for more details.
+
+## Tech Stack
+
+![Go](https://img.shields.io/badge/go-%2300ADD8.svg?style=for-the-badge&logo=go&logoColor=white) ![TypeScript](https://img.shields.io/badge/typescript-%23007ACC.svg?style=for-the-badge&logo=typescript&logoColor=white) ![Postgres](https://img.shields.io/badge/postgres-%23316192.svg?style=for-the-badge&logo=postgresql&logoColor=white) ![Nginx](https://img.shields.io/badge/nginx-%23009639.svg?style=for-the-badge&logo=nginx&logoColor=white) ![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white)

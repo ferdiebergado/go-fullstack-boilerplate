@@ -1,7 +1,6 @@
 .git/
 .vscode/
 .env
-build/
 configs/
 db/
 deployments/
@@ -9,5 +8,4 @@ scripts/
 test/
 tmp/
 tools/
-web/static/
 web/app/

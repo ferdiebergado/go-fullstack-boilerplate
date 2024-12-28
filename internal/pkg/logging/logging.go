@@ -3,6 +3,8 @@ package logging
 import (
 	"log/slog"
 	"os"
+
+	"github.com/ferdiebergado/gopherkit/env"
 )
 
 func handler() slog.Handler {
@@ -18,7 +20,12 @@ func handler() slog.Handler {
 	if os.Getenv("APP_ENV") == "production" {
 		handler = slog.NewJSONHandler(os.Stdout, opts)
 	} else {
-		logLevel.Set(slog.LevelDebug)
+		isDebug := env.GetBool("DEBUG", false)
+
+		if isDebug {
+			logLevel.Set(slog.LevelDebug)
+		}
+
 		handler = slog.NewTextHandler(os.Stderr, opts)
 	}
 

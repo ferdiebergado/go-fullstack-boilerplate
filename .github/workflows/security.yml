@@ -47,7 +47,7 @@ jobs:
 
       - name: Build Docker Compose services
         run: |
-          docker-compose -f deployments/docker-compose/compose.yml -f deployments/docker-compose/compose.production.yml build
+          docker-compose -f deployments/docker-compose/compose.yml build
 
       - name: Container scanning with Trivy for app service
         uses: aquasecurity/trivy-action@0.28.0
@@ -60,7 +60,7 @@ jobs:
           vuln-type: "os,library"
           severity: "CRITICAL,HIGH"
 
-      - name: Dependabot alerts (Optional)
+      - name: Dependabot alerts
         uses: dependabot/fetch-metadata@v1
         with:
           package-ecosystem: "gomod"

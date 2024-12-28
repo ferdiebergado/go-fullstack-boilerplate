@@ -43,8 +43,7 @@ RUN go mod download
 COPY cmd internal web/templates web/web.go .
 
 # Build the application
-RUN --mount=target=. \
-	--mount=type=cache,target=/go/pkg/mod \
+RUN --mount=type=cache,target=/go/pkg/mod \
 	--mount=type=cache,target=/root/.cache/go-build \
 	go build -ldflags="-w -s" -o /build/main ./cmd/web/main.go
 

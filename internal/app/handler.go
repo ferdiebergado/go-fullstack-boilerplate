@@ -35,16 +35,6 @@ func (h *BaseHandler) HandleDBStats(w http.ResponseWriter, _ *http.Request) {
 	h.htmlTemplate.Render(w, nil, "dbstats.html")
 }
 
-type Health struct {
-	CPU *CPUHealth `json:"cpu,omitempty"`
-	RAM *RAMHealth `json:"ram,omitempty"`
-}
-
-type ComponentHealth struct {
-	DB  *DBHealth `json:"db,omitempty"`
-	App *Health   `json:"app,omitempty"`
-}
-
 type HealthResponse struct {
 	Status     string          `json:"status"`
 	Components ComponentHealth `json:"components"`

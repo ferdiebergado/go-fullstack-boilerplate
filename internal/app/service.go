@@ -34,6 +34,16 @@ func ConvertBytesToMB(bytes uint64) float64 {
 	return float64(bytes) / bytesMB // 1 MB = 1,048,576 Bytes
 }
 
+type Health struct {
+	CPU *CPUHealth `json:"cpu,omitempty"`
+	RAM *RAMHealth `json:"ram,omitempty"`
+}
+
+type ComponentHealth struct {
+	DB  *DBHealth `json:"db,omitempty"`
+	App *Health   `json:"app,omitempty"`
+}
+
 type DBStats struct {
 	Driver string      `json:"driver"`
 	DB     string      `json:"db"`

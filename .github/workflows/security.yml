@@ -1,0 +1,53 @@
+name: Security
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  security-checks:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: 1.22
+
+      - name: Install dependencies
+        run: go mod tidy
+
+      - name: Run GoSec for security analysis
+        uses: securego/gosec@v2
+        with:
+          args: ./...
+
+      - name: Install govulncheck
+        run: go install golang.org/x/vuln/cmd/govulncheck@latest
+
+      - name: Run govulncheck
+        run: govulncheck ./...
+
+      - name: Check for outdated dependencies
+        run: go list -m -u all
+
+      - name: Container scanning with Trivy
+        if: exists('build/docker/Dockerfile') # Check if the Dockerfile exists in the subdirectory
+        uses: aquasecurity/trivy-action@v0.11.0
+        with:
+          scan-type: "fs"
+          severity: "CRITICAL,HIGH"
+          context: "docker" # Specify the subdirectory containing the Dockerfile
+
+      - name: Dependabot alerts (Optional)
+        uses: dependabot/fetch-metadata@v1
+        with:
+          package-ecosystem: "gomod"
+          directory: "/"

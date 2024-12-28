@@ -59,9 +59,3 @@ jobs:
           ignore-unfixed: true
           vuln-type: "os,library"
           severity: "CRITICAL,HIGH"
-
-      - name: Dependabot alerts
-        uses: dependabot/fetch-metadata@v1
-        with:
-          package-ecosystem: "gomod"
-          directory: "/"

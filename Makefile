@@ -11,7 +11,7 @@ MIGRATE_CMD := $(MIGRATE_BASE_CMD) -database postgres://$(DB_USER)@localhost:$(D
 BUNDLE_CMD := @cd tools && go run bundle.go
 COMPOSE_CMD := $(COMPOSE) -f $(COMPOSE_DIR)/compose.yml -f $(COMPOSE_DIR)/compose.$(APP_ENV).yml
 
-.PHONY: default psql migration migrate rollback drop force test bundle watch-css watch-ts bundle-prod stop restart dump-url vulncheck
+.PHONY: default psql migration migrate rollback drop force test bundle watch-css watch-ts bundle-prod stop restart vulncheck
 
 default:
 	$(COMPOSE_CMD) up --build

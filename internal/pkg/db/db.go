@@ -51,7 +51,7 @@ func (d *Database) Connect(ctx context.Context) (*sql.DB, error) {
 
 	d.conn = db
 
-	slog.Info("Connected to the database", "database", d.config.DB)
+	slog.Info("Connected to the database", "database", d.config.DB, "user", d.config.User)
 
 	return db, nil
 }

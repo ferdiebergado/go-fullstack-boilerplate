@@ -46,12 +46,12 @@ COPY cmd internal web/templates web/web.go .
 RUN --mount=target=. \
 	--mount=type=cache,target=/go/pkg/mod \
 	--mount=type=cache,target=/root/.cache/go-build \
-	go build -ldflags="-w -s" -o /app/main ./cmd/server/main.go
+	go build -ldflags="-w -s" -o /app/main ./cmd/web/main.go
 
 # Production stage
 # =============================================================================
 # Create a production stage to run the application binary
-FROM gcr.io/distroless/static:nonroot as production
+FROM gcr.io/distroless/static:nonroot AS production
 
 # Move to working directory /prod
 WORKDIR /prod

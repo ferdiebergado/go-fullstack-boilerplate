@@ -46,7 +46,7 @@ COPY cmd internal web/templates web/web.go .
 RUN --mount=target=. \
 	--mount=type=cache,target=/go/pkg/mod \
 	--mount=type=cache,target=/root/.cache/go-build \
-	go build -ldflags="-w -s" -o main ./cmd/web/main.go
+	go build -ldflags="-w -s" -o /build/main ./cmd/web/main.go
 
 # Production stage
 # =============================================================================

@@ -40,7 +40,7 @@ COPY go.mod go.sum ./
 RUN go mod download
 
 # Copy the entire source code into the container
-COPY cmd/ internal/ web/templates/ web/web.go .
+COPY . .
 
 # Build the application
 RUN --mount=type=cache,target=/go/pkg/mod \
@@ -56,8 +56,7 @@ FROM gcr.io/distroless/static:nonroot AS production
 WORKDIR /prod
 
 # Copy binary from builder stage
-# COPY --from=builder /build/server ./
-COPY --link --from=builder /build/main ./
+COPY --from=builder /build/main ./
 
 # this is the numeric version of user nonroot:nonroot to check runAsNonRoot in kubernetes
 USER 65532:65532

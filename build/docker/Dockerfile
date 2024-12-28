@@ -40,7 +40,7 @@ COPY go.mod go.sum ./
 RUN go mod download
 
 # Copy the entire source code into the container
-COPY cmd internal web/templates web/web.go .
+COPY cmd/ internal/ web/templates/ web/web.go .
 
 # Build the application
 RUN --mount=type=cache,target=/go/pkg/mod \

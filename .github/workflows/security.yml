@@ -54,24 +54,41 @@ jobs:
         with:
           scan-type: "image"
           image-ref: "gfb-app:latest"
+          format: "table"
+          exit-code: "1"
+          ignore-unfixed: true
+          vuln-type: "os,library"
+          severity: "CRITICAL,HIGH"
 
       - name: Container scanning with Trivy for the db service
         uses: aquasecurity/trivy-action@0.28.0
         with:
-          scan-type: "image"
           image-ref: "gfb-db:latest"
+          format: "table"
+          exit-code: "1"
+          ignore-unfixed: true
+          vuln-type: "os,library"
+          severity: "CRITICAL,HIGH"
 
       - name: Container scanning with Trivy for the proxy service
         uses: aquasecurity/trivy-action@0.28.0
         with:
-          scan-type: "image"
           image-ref: "gfb-proxy:latest"
+          format: "table"
+          exit-code: "1"
+          ignore-unfixed: true
+          vuln-type: "os,library"
+          severity: "CRITICAL,HIGH"
 
       - name: Container scanning with Trivy for the migrate service
         uses: aquasecurity/trivy-action@0.28.0
         with:
-          scan-type: "image"
           image-ref: "gfb-migrate:latest"
+          format: "table"
+          exit-code: "1"
+          ignore-unfixed: true
+          vuln-type: "os,library"
+          severity: "CRITICAL,HIGH"
 
       - name: Dependabot alerts (Optional)
         uses: dependabot/fetch-metadata@v1

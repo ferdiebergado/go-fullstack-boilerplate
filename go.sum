@@ -3,8 +3,6 @@ github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/ferdiebergado/goexpress v0.2.3 h1:XGhniNV4GDWBPwGfR14K/ArtDStIMN8vaO+qIOkQtpI=
 github.com/ferdiebergado/goexpress v0.2.3/go.mod h1:6kTrSyj5OOsihLAsPEqeZYbxYI7R5jZWAlKt/+iRAag=
-github.com/ferdiebergado/gopherkit v0.0.3 h1:muEPKwy3tX0hMdxGAefnH0T5NxaYbeGZSCEwQMK61G8=
-github.com/ferdiebergado/gopherkit v0.0.3/go.mod h1:QYeDX96iDq3aHeDxI0LuBooHeGuxuZ3Ki0iE421VDl8=
 github.com/ferdiebergado/gopherkit v0.0.4 h1:eldBXvvhbbOF09PNInRVt9m8TtA9dYv5QZHao2XSvLM=
 github.com/ferdiebergado/gopherkit v0.0.4/go.mod h1:QYeDX96iDq3aHeDxI0LuBooHeGuxuZ3Ki0iE421VDl8=
 github.com/jackc/pgpassfile v1.0.0 h1:/6Hmqy13Ss2zCq62VdNG8tM1wchn8zjSGOBJ6icpsIM=

@@ -54,11 +54,11 @@ jobs:
           
     - name: Run tests
       env:
-        POSTGRES_USER: testuser
-        POSTGRES_PASSWORD: testpassword
-        POSTGRES_DB: testdb
-        POSTGRES_HOST: localhost
-        POSTGRES_PORT: 5432
+        DB_USER: testuser
+        DB_PASSWORD: testpassword
+        DB_NAME: testdb
+        DB_HOST: localhost
+        DB_PORT: 5432
       run: go test ./... -v
 
     - name: Build the application

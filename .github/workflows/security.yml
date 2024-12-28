@@ -39,6 +39,12 @@ jobs:
       - name: Check for outdated dependencies
         run: go list -m -u all
 
+      - name: Install docker-compose
+        run: |
+          sudo curl -SL https://github.com/docker/compose/releases/download/v2.32.0/docker-compose-linux-x86_64 -o /usr/local/bin/docker-compose
+          sudo chmod +x /usr/local/bin/docker-compose
+          docker-compose --version
+
       - name: Build Docker Compose services
         run: |
           docker-compose -f deployments/docker-compose/compose.yml build

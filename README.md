@@ -1,7 +1,6 @@
 # go-fullstack-boilerplate
 
-![Github Actions](https://github.com/ferdiebergado/go-fullstack-boilerplate/actions/workflows/go.yml/badge.svg?event=push)
-[![Go Report Card](https://goreportcard.com/badge/github.com/ferdiebergado/go-fullstack-boilerplate)](https://goreportcard.com/report/github.com/ferdiebergado/go-fullstack-boilerplate)
+![Github Actions](https://github.com/ferdiebergado/go-fullstack-boilerplate/actions/workflows/go.yml/badge.svg?event=push) ![Github Actions](https://github.com/ferdiebergado/go-fullstack-boilerplate/actions/workflows/security.yml/badge.svg?event=push) [![Go Report Card](https://goreportcard.com/badge/github.com/ferdiebergado/go-fullstack-boilerplate)](https://goreportcard.com/report/github.com/ferdiebergado/go-fullstack-boilerplate)
 
 A template to scaffold a fullstack go web application.
 

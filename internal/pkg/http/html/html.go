@@ -29,22 +29,22 @@ const suffix = ".html"
 func getFuncMap() template.FuncMap {
 	return template.FuncMap{
 		"attr": func(s string) template.HTMLAttr {
-			return template.HTMLAttr(s)
+			return template.HTMLAttr(s) // #nosec G203 -- No user input
 		},
 		"safe": func(s string) template.HTML {
-			return template.HTML(s)
+			return template.HTML(s) // #nosec G203 -- No user input
 		},
 		"url": func(s string) template.URL {
-			return template.URL(s)
+			return template.URL(s) // #nosec G203 -- No user input
 		},
 		"js": func(s string) template.JS {
-			return template.JS(s)
+			return template.JS(s) // #nosec G203 -- No user input
 		},
 		"jsstr": func(s string) template.JSStr {
-			return template.JSStr(s)
+			return template.JSStr(s) // #nosec G203 -- No user input
 		},
 		"css": func(s string) template.CSS {
-			return template.CSS(s)
+			return template.CSS(s) // #nosec G203 -- No user input
 		},
 	}
 }

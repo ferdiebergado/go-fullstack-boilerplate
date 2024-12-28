@@ -38,13 +38,23 @@ jobs:
       - name: Check for outdated dependencies
         run: go list -m -u all
 
+      - name: Check if Dockerfile exists in subdirectory
+        id: dockerfile-check
+        run: |
+          if [ -f "build/docker/Dockerfile" ]; then
+            echo "Dockerfile found in build/docker/ directory"
+            echo "dockerfile_exists=true" >> $GITHUB_ENV
+          else
+            echo "Dockerfile not found"
+            echo "dockerfile_exists=false" >> $GITHUB_ENV
+
       - name: Container scanning with Trivy
-        if: exists('build/docker/Dockerfile') # Check if the Dockerfile exists in the subdirectory
+        if: env.dockerfile_exists == 'true'
         uses: aquasecurity/trivy-action@v0.11.0
         with:
           scan-type: "fs"
           severity: "CRITICAL,HIGH"
-          context: "docker" # Specify the subdirectory containing the Dockerfile
+          context: "docker"
 
       - name: Dependabot alerts (Optional)
         uses: dependabot/fetch-metadata@v1

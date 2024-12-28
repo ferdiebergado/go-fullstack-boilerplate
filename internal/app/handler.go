@@ -86,7 +86,7 @@ func (h *BaseHandler) HandleHealthCheck(w http.ResponseWriter, r *http.Request) 
 		response.RenderError(w, err, health)
 	}
 
-	response.RenderJSON(w, health)
+	response.RenderJSON(w, http.StatusOK, health)
 }
 
 func (h *BaseHandler) HandleNotFound(w http.ResponseWriter, _ *http.Request) {

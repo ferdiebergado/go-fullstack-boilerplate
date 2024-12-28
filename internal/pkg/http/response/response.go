@@ -23,8 +23,8 @@ func RenderError[T any](w http.ResponseWriter, err *errtypes.HTTPError, data *T)
 	http.Error(w, err.Error(), err.Code)
 }
 
-func RenderJSON[T any](w http.ResponseWriter, data *T) {
-	if err := gkitResponse.JSON(w, http.StatusOK, data); err != nil {
+func RenderJSON[T any](w http.ResponseWriter, status int, data *T) {
+	if err := gkitResponse.JSON(w, status, data); err != nil {
 		RenderError[T](w, errtypes.JSONEncodeError(err), nil)
 	}
 }

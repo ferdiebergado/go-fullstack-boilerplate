@@ -52,6 +52,7 @@ func (d *Database) Connect(ctx context.Context) (*sql.DB, error) {
 	d.conn = db
 
 	slog.Info("Connected to the database", "database", d.config.DB, "user", d.config.User)
+	slog.Debug("Database Config", slog.Group("Connection", slog.Duration("conn_max_life_time", d.config.ConnMaxLifetime), slog.Int("max_idle_connections", d.config.MaxIdleConnections), slog.Int("max_open_connections", d.config.MaxOpenConnections)), slog.Duration("ping_timeout", d.config.PingTimeout), "ssl_mode", d.config.SSLMode)
 
 	return db, nil
 }
@@ -60,7 +61,8 @@ func (d *Database) Disconnect() {
 	slog.Info("Closing database connection...")
 
 	if err := d.conn.Close(); err != nil {
-		slog.Error("failed to close the database connection", "error", err.Error())
+		slog.Error("failed to close the database connection", "error", err)
+		return
 	}
 
 	slog.Info("Database closed successfully.")

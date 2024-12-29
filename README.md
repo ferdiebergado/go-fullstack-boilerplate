@@ -11,6 +11,7 @@ A template to scaffold a fullstack go web application.
 -   [Router](https://github.com/ferdiebergado/goexpress) based on net/http ServeMux
 -   HTML templating using html/template
 -   Typescript support out-of-the-box
+-   [Toolkit](https://github.com/ferdiebergado/gopherkit) that makes common tasks easier
 -   Database migrations
 -   Hot reloading during development
 -   [nginx](https://nginx.org/en/) as web server and reverse proxy configured for high-performance
@@ -128,6 +129,17 @@ make restart service=proxy
 ```sh
 make stop
 ```
+
+## TODOs
+
+-   [ ] Login with email and password
+-   [ ] Email verification
+-   [ ] Secure Cookie Session Management
+-   [ ] Login with Google (OAuth2)
+-   [ ] Authorization
+-   [ ] Audit logs
+-   [ ] Environment Page (go version, drivers, env, os kernel, etc.)
+-   [ ] Cache busting for assets
 
 ## Linting
 

@@ -14,6 +14,7 @@ A template to scaffold a fullstack go web application.
 -   Database migrations
 -   Hot reloading during development
 -   [nginx](https://nginx.org/en/) as web server and reverse proxy configured for high-performance
+-   Docker deployment
 
 ## Requirements
 

@@ -16,13 +16,13 @@ import (
 
 // Run the application
 func Run(ctx context.Context) error {
-	// Initialize the logger
-	logging.Init()
-	slog.Info("Running application...")
-
 	// Register OS Signal Listener
 	signalCtx, stop := signal.NotifyContext(ctx, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
+
+	// Initialize the logger
+	logging.Init()
+	slog.Info("Running application...")
 
 	// Load config
 	cfg := config.Load()

@@ -17,7 +17,7 @@ type Service interface {
 	DBStats(context.Context) (*DBHealth, error)
 	CPUStats() *CPUHealth
 	MemStats() *RAMHealth
-	Ping(context.Context) error
+	PingDB(context.Context) error
 }
 
 func NewService(repo Repo, cfg *config.Config) Service {
@@ -58,7 +58,7 @@ type DBHealth struct {
 }
 
 func (s *service) DBStats(ctx context.Context) (*DBHealth, error) {
-	if err := s.Ping(ctx); err != nil {
+	if err := s.PingDB(ctx); err != nil {
 		return &DBHealth{
 			Status: "down",
 		}, err
@@ -78,7 +78,7 @@ func (s *service) DBStats(ctx context.Context) (*DBHealth, error) {
 	}, nil
 }
 
-func (s *service) Ping(ctx context.Context) error {
+func (s *service) PingDB(ctx context.Context) error {
 	return s.repo.Ping(ctx)
 }
 

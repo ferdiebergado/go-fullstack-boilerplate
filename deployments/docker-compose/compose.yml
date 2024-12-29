@@ -1,4 +1,5 @@
 services:
+  # Go Web App Service
   app:
     build:
       context: ../../
@@ -15,8 +16,6 @@ services:
     depends_on:
       migrate:
         condition: service_completed_successfully
-    networks:
-      - gfb_network
 
   # PostgreSQL Database Service
   db:
@@ -33,12 +32,11 @@ services:
       timeout: 5s
       retries: 5
     volumes:
-      - gfb_postgresql_data:/var/lib/postgresql/data
       - ../../configs/postgresql.conf:/etc/postgresql/postgresql.conf:Z
       - ../../configs/psqlrc:/root/.psqlrc:Z
     restart: always
-    networks:
-      - gfb_network
+    ports:
+      - 5432:5432
 
   # Nginx Reverse Proxy Service
   proxy:
@@ -55,17 +53,15 @@ services:
     ports:
       - "8080:80"
     restart: always
-    networks:
-      - gfb_network
 
   migrate:
     image: migrate/migrate:v4.17.1
     container_name: gfb-migrate
+    volumes:
+      - ../../db/migrations:/migrations:Z
     depends_on:
       db:
         condition: service_healthy
-    networks:
-      - gfb_network
     command:
       [
         "-path",
@@ -76,8 +72,4 @@ services:
       ]
 
 volumes:
-  gfb_postgresql_data:
   gfb_mod_cache:
-
-networks:
-  gfb_network:

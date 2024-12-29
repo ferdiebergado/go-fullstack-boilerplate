@@ -132,6 +132,7 @@ make stop
 
 ## TODOs
 
+-   [x] Health endpoint
 -   [ ] Login with email and password
 -   [ ] Email verification
 -   [ ] Secure Cookie Session Management

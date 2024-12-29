@@ -59,7 +59,8 @@ func (s *Server) Shutdown() {
 	defer cancel()
 
 	if err := s.Server.Shutdown(shutdownCtx); err != nil && !errors.Is(err, http.ErrServerClosed) {
-		slog.Error("failed shutting down the server", slog.String("error", err.Error()))
+		slog.Error("failed shutting down the server", "error", err)
+		return
 	}
 
 	slog.Info("HTTP Server shut down successfully.")

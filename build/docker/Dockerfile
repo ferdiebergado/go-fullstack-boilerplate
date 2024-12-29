@@ -1,10 +1,6 @@
 # Use Go 1.22 bookworm as base image
 FROM golang:1.22-bookworm AS base
 
-ENV CGO_ENABLED=0
-ENV GOOS=linux
-ENV GOARCH=amd64
-
 # Development stage
 # =============================================================================
 # Create a development stage based on the "base" image
@@ -25,6 +21,23 @@ RUN go mod download
 # Start air for live reloading
 CMD ["air"]
 
+# Testing stage
+# =============================================================================
+# Create a testing stage based on the "base" image
+FROM base AS testing
+
+# Change the working directory to /test
+WORKDIR /test
+
+# Copy the go.mod and go.sum files to the /test directory
+COPY go.mod go.sum ./
+
+# Install dependencies
+RUN go mod download
+
+# Run the tests
+CMD ["go", "test", "-v", "-race", "./..."]
+
 # Builder stage
 # =============================================================================
 # Create a builder stage based on the "base" image
@@ -41,6 +54,10 @@ RUN go mod download
 
 # Copy the entire source code into the container
 COPY . .
+
+ENV CGO_ENABLED=0
+ENV GOOS=linux
+ENV GOARCH=amd64
 
 # Build the application
 RUN --mount=type=cache,target=/go/pkg/mod \

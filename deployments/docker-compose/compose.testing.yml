@@ -1,0 +1,27 @@
+services:
+  app:
+    build:
+      target: testing
+    env_file:
+      - ../../.env.testing
+    volumes:
+      - gfb_mod_cache:/go/pkg/mod:Z
+      - ../../.:/test:Z
+    ports:
+      - 3000:${SERVER_PORT}
+
+  db:
+    container_name: gfb-testdb
+    volumes:
+      - ../../configs/postgresql.conf:/etc/postgresql/postgresql.conf:Z
+      - ../../configs/psqlrc:/root/.psqlrc:Z
+      - gfb_testdb_data:/var/lib/postgresql/data:Z
+
+  proxy:
+    volumes:
+      - ../../configs/nginx.conf.template:/etc/nginx/nginx.conf.template:Z
+      - ../../web/static:/usr/share/nginx/html:Z
+      - ../../build/docker/scripts/start-nginx.sh:/start-nginx.sh:Z
+
+volumes:
+  gfb_testdb_data:

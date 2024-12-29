@@ -2,7 +2,7 @@
 set -x
 
 $CONTAINER run -d --rm --network host --name $DB_CONTAINER \
-	-e POSTGRES_HOST_AUTH_METHOD=trust \
+	-e POSTGRES_PASSWORD="$DB_PASSWORD" \
 	-e POSTGRES_USER="$DB_USER" -e POSTGRES_DB="$DB_NAME" \
 	-v ./configs/postgresql.conf:/etc/postgresql/postgresql.conf:Z \
 	-v ./configs/psqlrc:/root/.psqlrc:Z \

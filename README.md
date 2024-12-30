@@ -139,6 +139,7 @@ make stop
 -   [ ] Login with Google (OAuth2)
 -   [ ] Authorization
 -   [ ] Audit logs
+-   [ ] Database query caching
 -   [ ] Environment Page (go version, drivers, env, os kernel, etc.)
 -   [ ] Cache busting for assets
 

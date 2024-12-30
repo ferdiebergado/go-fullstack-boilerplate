@@ -16,13 +16,6 @@ import (
 	"github.com/ferdiebergado/go-fullstack-boilerplate/web"
 )
 
-var (
-	ErrTemplateParse    = errors.New("failed to parse template")
-	ErrTemplateNotFound = errors.New("could not find template")
-	ErrTemplateExec     = errors.New("failed to execute template")
-	ErrTemplateWrite    = errors.New("failed to write template to the response")
-)
-
 const suffix = ".html"
 
 // Retrieve the template func maps
@@ -121,14 +114,17 @@ func (t *Template) Render(w http.ResponseWriter, data any, name string) {
 	tmpl, ok := t.templates[name]
 
 	if !ok {
-		response.RenderError[any](w, errtypes.ServerError(fmt.Errorf("%w: %s", ErrTemplateNotFound, name)), nil)
+		notFoundErr := errors.New("could not find template")
+		err := fmt.Errorf("get template %s: %w", name, notFoundErr)
+		response.RenderError[any](w, errtypes.ServerError(err), nil)
 		return
 	}
 
 	var buf bytes.Buffer
 
 	if err := tmpl.Execute(&buf, data); err != nil {
-		response.RenderError[any](w, errtypes.ServerError(fmt.Errorf("%w %v", ErrTemplateExec, err)), nil)
+		execErr := fmt.Errorf("execute template: %w", err)
+		response.RenderError[any](w, errtypes.ServerError(execErr), nil)
 		return
 	}
 
@@ -136,7 +132,8 @@ func (t *Template) Render(w http.ResponseWriter, data any, name string) {
 	_, err := buf.WriteTo(w)
 
 	if err != nil {
-		response.RenderError[any](w, errtypes.ServerError(fmt.Errorf("%w %v", ErrTemplateWrite, err)), nil)
+		writeErr := fmt.Errorf("write response: %w", err)
+		response.RenderError[any](w, errtypes.ServerError(writeErr), nil)
 		return
 	}
 }

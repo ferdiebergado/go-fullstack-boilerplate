@@ -22,14 +22,14 @@ const (
 	tsOutdir  = "../web/static/js"
 )
 
-func getCSSBuildOptions() api.BuildOptions {
+func cssBuildOptions() api.BuildOptions {
 	return api.BuildOptions{
 		EntryPoints: []string{cssEntry},
 		Outdir:      cssOutDir,
 	}
 }
 
-func getTSBuildOptions() api.BuildOptions {
+func tsBuildOptions() api.BuildOptions {
 	return api.BuildOptions{
 		EntryPoints: []string{tsEntry},
 		Outdir:      tsOutdir,
@@ -154,8 +154,8 @@ func main() {
 
 	flag.Parse()
 
-	cssOpts := addBasicOpts(getCSSBuildOptions())
-	tsOpts := addBasicOpts(getTSBuildOptions())
+	cssOpts := addBasicOpts(cssBuildOptions())
+	tsOpts := addBasicOpts(tsBuildOptions())
 
 	if isWatched {
 		asset := os.Args[len(os.Args)-1]

@@ -3,7 +3,6 @@
 package main
 
 import (
-	"errors"
 	"flag"
 	"fmt"
 	"log"
@@ -22,8 +21,6 @@ const (
 	tsEntry   = "../web/app/ts/**/**/*.ts"
 	tsOutdir  = "../web/static/js"
 )
-
-var ErrAssetInvalid = errors.New("invalid asset type")
 
 func getCSSBuildOptions() api.BuildOptions {
 	return api.BuildOptions{
@@ -164,7 +161,7 @@ func main() {
 		asset := os.Args[len(os.Args)-1]
 
 		if asset != "css" && asset != "ts" {
-			bailout(fmt.Errorf("%w %s", ErrAssetInvalid, asset))
+			bailout(fmt.Errorf("invalid asset type: %s", asset))
 		}
 
 		switch asset {

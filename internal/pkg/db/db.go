@@ -3,7 +3,6 @@ package db
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"fmt"
 	"log/slog"
 
@@ -14,11 +13,6 @@ type Database struct {
 	conn   *sql.DB
 	config *config.DBConfig
 }
-
-var (
-	ErrDatabaseInit    = errors.New("failed to initialize database")
-	ErrDatabaseConnect = errors.New("failed to connect to the database")
-)
 
 func New(cfg config.DBConfig) *Database {
 	return &Database{
@@ -35,14 +29,14 @@ func (d *Database) Connect(ctx context.Context) (*sql.DB, error) {
 	db, err := sql.Open(d.config.Driver, dsn)
 
 	if err != nil {
-		return nil, fmt.Errorf("%w %v", ErrDatabaseInit, err)
+		return nil, fmt.Errorf("open database: %w", err)
 	}
 
 	pingCtx, cancel := context.WithTimeout(ctx, d.config.PingTimeout)
 	defer cancel()
 
 	if err = db.PingContext(pingCtx); err != nil {
-		return nil, fmt.Errorf("%w %v", ErrDatabaseConnect, err)
+		return nil, fmt.Errorf("ping database: %w", err)
 	}
 
 	db.SetConnMaxLifetime(d.config.ConnMaxLifetime)

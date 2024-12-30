@@ -58,7 +58,7 @@ func parsePartials(layoutTmpl *template.Template, partialsDir string) {
 		if !d.IsDir() && strings.HasSuffix(path, suffix) {
 			_, parseErr := layoutTmpl.ParseFS(web.TemplatesFS, path)
 			if parseErr != nil {
-				return fmt.Errorf("failed to parse partial: %w", parseErr)
+				return fmt.Errorf("parse partials: %w", parseErr)
 			}
 			slog.Debug("parsed partial", "path", path)
 		}
@@ -66,7 +66,7 @@ func parsePartials(layoutTmpl *template.Template, partialsDir string) {
 	})
 
 	if err != nil {
-		panic(fmt.Errorf("failed to load partial templates: %w", err))
+		panic(fmt.Errorf("load partials templates: %w", err))
 	}
 
 	slog.Debug("layout", "name", layoutTmpl.Name(), "defined_templates", layoutTmpl.DefinedTemplates())
@@ -88,7 +88,7 @@ func parsePages(layoutTmpl *template.Template, templatePagesDir string) template
 	})
 
 	if err != nil {
-		panic(fmt.Errorf("failed to load templates: %w", err))
+		panic(fmt.Errorf("load pages templates: %w", err))
 	}
 
 	return tmplMap

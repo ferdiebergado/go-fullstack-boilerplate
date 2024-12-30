@@ -81,5 +81,9 @@ func (h *BaseHandler) HandleHealthCheck(w http.ResponseWriter, r *http.Request) 
 
 func (h *BaseHandler) HandleNotFound(w http.ResponseWriter, _ *http.Request) {
 	w.WriteHeader(http.StatusNotFound)
-	h.htmlTemplate.Render(w, nil, "404.html")
+	data := &response.PageData{
+		Title:    "Page Not Found",
+		Subtitle: "The page you were looking for does not exist.",
+	}
+	h.htmlTemplate.Render(w, data, "error.html")
 }

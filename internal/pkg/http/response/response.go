@@ -8,6 +8,11 @@ import (
 	gkitResponse "github.com/ferdiebergado/gopherkit/http/response"
 )
 
+type PageData struct {
+	Title    string
+	Subtitle string
+}
+
 func RenderError[T any](w http.ResponseWriter, err *errtypes.HTTPError, data *T) {
 	slog.Error(err.Error(), "error", err.Err, "severity", err.Severity)
 

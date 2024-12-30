@@ -26,7 +26,7 @@ var (
 const suffix = ".html"
 
 // Retrieve the template func maps
-func getFuncMap() template.FuncMap {
+func funcMap() template.FuncMap {
 	return template.FuncMap{
 		"attr": func(s string) template.HTMLAttr {
 			return template.HTMLAttr(s) // #nosec G203 -- No user input
@@ -110,7 +110,7 @@ func NewTemplate(cfg *config.HTMLTemplateConfig) *Template {
 	partialsDir := templateDir + cfg.PartialsDir
 	pagesDir := templateDir + cfg.PagesDir
 
-	layoutTmpl := template.Must(template.New("layout").Funcs(getFuncMap()).ParseFS(web.TemplatesFS, layoutFile))
+	layoutTmpl := template.Must(template.New("layout").Funcs(funcMap()).ParseFS(web.TemplatesFS, layoutFile))
 
 	parsePartials(layoutTmpl, partialsDir)
 

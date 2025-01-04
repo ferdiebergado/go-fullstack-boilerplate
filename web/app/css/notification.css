@@ -1,0 +1,29 @@
+/* Notification styles */
+.notification {
+	display: flex;
+	align-items: center;
+	padding: 15px 20px;
+	border-radius: 5px;
+	color: #fff;
+	font-size: 14px;
+	font-weight: 500;
+	box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+	width: 100%;
+	max-width: 400px;
+	margin: 2rem auto;
+	display: none;
+}
+
+/* Notification type styles */
+.notification.success {
+	background-color: #28a745;
+}
+
+.notification.warning {
+	background-color: #ffc107;
+	color: #212529;
+}
+
+.notification.error {
+	background-color: #dc3545;
+}

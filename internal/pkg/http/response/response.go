@@ -13,6 +13,12 @@ type PageData struct {
 	Subtitle string
 }
 
+type APIResponse[T any] struct {
+	Success bool   `json:"success"`
+	Message string `json:"message"`
+	Data    *T     `json:"data,omitempty"`
+}
+
 func RenderError[T any](w http.ResponseWriter, err *errtypes.HTTPError, data *T) {
 	slog.Error(err.Error(), "error", err.Err, "severity", err.Severity)
 

@@ -1,0 +1,11 @@
+.card {
+	box-shadow: 0 10px 39px 10px rgba(62, 66, 66, 0.22);
+	background-color: #fff;
+	color: #333;
+	border-radius: 8px;
+	padding: 2rem;
+	width: 80%;
+	min-width: 400px;
+	margin: 0 auto;
+	text-align: center;
+}

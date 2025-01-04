@@ -1,0 +1,26 @@
+nav {
+	background-color: whitesmoke;
+	padding: 2rem;
+	box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+		0 10px 10px -5px rgba(0, 0, 0, 0.04);
+	height: fit-content;
+	margin-bottom: 5rem;
+}
+
+nav > ul {
+	display: flex;
+}
+
+nav > ul > li {
+	list-style-type: none;
+}
+
+nav > ul > li > a {
+	padding: 1rem;
+	text-decoration: none;
+}
+
+nav > ul > li > a:hover {
+	background-color: black;
+	color: white;
+}

@@ -3,6 +3,7 @@ package app
 import (
 	"database/sql"
 
+	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/app/user"
 	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/config"
 	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/http/html"
 	"github.com/ferdiebergado/goexpress"
@@ -35,7 +36,15 @@ func (a *App) AddBaseHandler() *BaseHandler {
 	return NewHandler(a.router, service, a.config, htmlTemplate)
 }
 
+func (a *App) AddAuthHandler() *user.Handler {
+	repo := user.NewAuthRepo(&a.config.DB, a.db)
+	service := user.NewAuthService(a.config, repo)
+	htmlTemplate := html.NewTemplate(&a.config.HTML)
+	return user.NewHandler(a.config, a.router, service, htmlTemplate)
+}
+
 func (a *App) SetupRouter() {
 	a.registerGlobalMiddlewares()
 	registerBaseRoutes(a.router, a.AddBaseHandler())
+	user.RegisterAuthRoutes(a.router, a.AddAuthHandler())
 }

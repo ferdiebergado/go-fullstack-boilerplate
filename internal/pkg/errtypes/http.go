@@ -1,6 +1,10 @@
 package errtypes
 
-import "net/http"
+import (
+	"net/http"
+
+	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/validation"
+)
 
 type HTTPError struct {
 	*AppError
@@ -15,6 +19,17 @@ func ServerError(err error) *HTTPError {
 			Severity:    Critical,
 		},
 		Code: http.StatusInternalServerError,
+	}
+}
+
+func ValidationError(inputErr validation.InputError) *HTTPError {
+	return &HTTPError{
+		AppError: &AppError{
+			Description: inputErr.Error(),
+			Err:         &inputErr,
+			Severity:    Low,
+		},
+		Code: http.StatusUnprocessableEntity,
 	}
 }
 

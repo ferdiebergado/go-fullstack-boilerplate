@@ -2,4 +2,4 @@
 
 . ./.env.testing
 
-$CONTAINER stop $DB_CONTAINER
+docker stop $DB_CONTAINER

@@ -1,13 +1,13 @@
 #!/bin/sh
 
-# Function to handle SIGTERM and terminate the script
+# Function to handle os signals and terminate the script
 terminate() {
-	echo "Received SIGTERM, terminating..."
+	echo "Received stop signal, terminating..."
 	exit 0
 }
 
-# Trap SIGTERM to call the terminate function
-trap terminate SIGTERM
+# Trap os signals to call the terminate function
+trap terminate SIGTERM SIGINT SIGQUIT
 
 # Wait for the app to become ready
 until curl -s http://app:$SERVER_PORT/api/health; do

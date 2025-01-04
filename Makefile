@@ -9,74 +9,81 @@ MIGRATE_CMD := $(MIGRATE_BASE_CMD) -database postgres://$(DB_USER):$(DB_PASSWORD
 # Bundler
 BUNDLE_CMD := @cd tools && go run bundle.go
 
-.PHONY: default psql migration migrate rollback drop force test bundle watch-css watch-ts bundle-prod stop restart vulncheck teardown deploy
+.PHONY: $(wildcard *)
 
-# deploy for development
 default:
+	@sed -n 's/^##//p' Makefile | column -t -s ':' | sed -e 's/^//'
+
+## dev: Deploy for development
+dev:
 	docker compose -f $(COMPOSE_DIR)/compose.yml -f $(COMPOSE_DIR)/compose.development.yml up --build
 
-# stop all running services
+## stop: Stop all running services
 stop:
 	docker compose -f $(COMPOSE_DIR)/compose.yml down
 
-# restart a service (make restart service=proxy)
+## restart: Restart a service (make restart service=proxy)
 restart:
 	docker compose build $(service)
 	docker compose -f $(COMPOSE_DIR)/compose.yml up --no-deps -d $(service)
 
-# interact with the database
+## psql: Invoke psql on the running database instance
 psql:
 	./scripts/psql.sh
 
-# create a migration (make migration name=create_users_table)
+## migration: Create a migration (make migration name=create_users_table)
 migration:
 	$(MIGRATE_BASE_CMD) create -ext sql -dir $(MIGRATIONS_DIR_REMOTE) -seq $(name)
 
-# run the migrations
+## migrate: Run the migrations
 migrate:
 	$(MIGRATE_CMD) up $(version)
 
-# rollback all migrations
+## rollback: Rollback all migrations
 rollback:
 	$(MIGRATE_CMD) down $(version)
 
-# drop all tables in the database
+## drop: Drop all tables in the database
 drop:
 	$(MIGRATE_CMD) drop
 
-# force a migration (make force version=1)
+## force: Force a migration (make force version=1)
 force:
 	$(MIGRATE_CMD) force $(version)
 
-# run tests
+## test: Run the unit tests
 test:
+	go test -v -race ./...
+
+## integration: Run the integration tests
+integration:
 	./scripts/test.sh
 
-# clean up after the tests
+## teardown: Clean up after the tests
 teardown:
 	./scripts/teardown.sh
 
-# bundle the assets
+## bundle: Bundle the assets
 bundle:
 	$(BUNDLE_CMD)
 
-# bundle css in watch mode
+## watch-css: Bundle css in watch mode
 watch-css:
 	$(BUNDLE_CMD) -watch css || true
 
-# bundle typescript in watch mode
+## watch-ts: Bundle typescript in watch mode
 watch-ts:
 	$(BUNDLE_CMD) -watch ts || true
 
-# bundle assets for production
+## bundle-prod: Bundle assets for production
 bundle-prod:
 	$(BUNDLE_CMD) -prod
 
-# check for vulnerable packages
+## vulncheck: Check for vulnerable packages
 vulncheck:
 	@which govulncheck || go install golang.org/x/vuln/cmd/govulncheck@latest
 	govulncheck -show verbose ./...
 
-# deploy for production
+## deploy: Deploy for production
 deploy:
 	docker compose -f $(COMPOSE_DIR)/compose.yml -f $(COMPOSE_DIR)/compose.production.yml --env-file /dev/null up --build

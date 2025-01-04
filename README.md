@@ -20,7 +20,7 @@ A template to scaffold a fullstack go web application.
 ## Requirements
 
 -   Go version 1.22 or higher
--   Docker or Podman
+-   Docker
 
 ## Getting Started
 
@@ -37,7 +37,7 @@ mv .env.example .env
 Deploy the application.
 
 ```sh
-make
+make dev
 ```
 
 ### Step 3
@@ -48,10 +48,10 @@ Browse the application at [localhost:8080](http://locahost:8080).
 
 ### Create Migrations
 
-Run the migration target with the name argument set to the name of the migration.
+Run the migration target with the name of the migration as argument.
 
 ```sh
-make migration name=create_users_table
+make migration create_users_table
 ```
 
 ### Run Migrations
@@ -72,7 +72,7 @@ When a migration fails, fix the error and force the version of the failed migrat
 Then run the migration again.
 
 ```sh
-make force version=1
+make force 1
 make migrate
 ```
 
@@ -104,8 +104,16 @@ make bundle-prod
 
 ## Tests
 
+Run unit tests.
+
 ```sh
 make test
+```
+
+Run integration tests.
+
+```sh
+make integration
 ```
 
 ## Other Tasks
@@ -118,16 +126,24 @@ make psql
 
 ### Restart a service
 
-Provide a service argument to the restart target.
+Provide a service as argument to the restart target.
 
 ```sh
-make restart service=proxy
+make restart proxy
 ```
 
 ### Stop all the running containers
 
 ```sh
 make stop
+```
+
+### Other Tasks
+
+View the usage information by running make.
+
+```sh
+make
 ```
 
 ## TODOs

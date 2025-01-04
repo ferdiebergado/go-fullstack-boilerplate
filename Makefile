@@ -11,8 +11,12 @@ BUNDLE_CMD := @cd tools && go run bundle.go
 
 .PHONY: $(wildcard *)
 
+%:
+	@true
+
 default:
-	@sed -n 's/^##//p' Makefile | column -t -s ':' | sed -e 's/^//'
+	@echo "Usage:"
+	@sed -n 's/^## //p' Makefile | column -t -s ':' --table-columns TARGET," DESCRIPTION"," EXAMPLE"
 
 ## dev: Deploy for development
 dev:
@@ -22,34 +26,34 @@ dev:
 stop:
 	docker compose -f $(COMPOSE_DIR)/compose.yml down
 
-## restart: Restart a service (make restart service=proxy)
+## restart: Restart a service: make restart proxy
 restart:
-	docker compose build $(service)
-	docker compose -f $(COMPOSE_DIR)/compose.yml up --no-deps -d $(service)
+	docker compose build $(wordlist 2, $(words $(MAKECMDGOALS)), $(MAKECMDGOALS))
+	docker compose -f $(COMPOSE_DIR)/compose.yml up --no-deps -d $(wordlist 2, $(words $(MAKECMDGOALS)), $(MAKECMDGOALS))
 
 ## psql: Invoke psql on the running database instance
 psql:
 	./scripts/psql.sh
 
-## migration: Create a migration (make migration name=create_users_table)
+## migration: Create a migration: make migration create_users_table
 migration:
-	$(MIGRATE_BASE_CMD) create -ext sql -dir $(MIGRATIONS_DIR_REMOTE) -seq $(name)
+	$(MIGRATE_BASE_CMD) create -ext sql -dir $(MIGRATIONS_DIR_REMOTE) -seq $(wordlist 2, $(words $(MAKECMDGOALS)), $(MAKECMDGOALS))
 
-## migrate: Run the migrations
+## migrate: Run the migrations: (with version) make migrate 5
 migrate:
-	$(MIGRATE_CMD) up $(version)
+	$(MIGRATE_CMD) up $(wordlist 2, $(words $(MAKECMDGOALS)), $(MAKECMDGOALS))
 
-## rollback: Rollback all migrations
+## rollback: Rollback all migrations: (with version) make rollback 1
 rollback:
-	$(MIGRATE_CMD) down $(version)
+	$(MIGRATE_CMD) down $(wordlist 2, $(words $(MAKECMDGOALS)), $(MAKECMDGOALS))
 
 ## drop: Drop all tables in the database
 drop:
 	$(MIGRATE_CMD) drop
 
-## force: Force a migration (make force version=1)
+## force: Force a migration: make force 1
 force:
-	$(MIGRATE_CMD) force $(version)
+	$(MIGRATE_CMD) force $(wordlist 2, $(words $(MAKECMDGOALS)), $(MAKECMDGOALS))
 
 ## test: Run the unit tests
 test:
@@ -81,7 +85,7 @@ bundle-prod:
 
 ## vulncheck: Check for vulnerable packages
 vulncheck:
-	@which govulncheck || go install golang.org/x/vuln/cmd/govulncheck@latest
+	@which govulncheck >/dev/null || go install golang.org/x/vuln/cmd/govulncheck@latest
 	govulncheck -show verbose ./...
 
 ## deploy: Deploy for production

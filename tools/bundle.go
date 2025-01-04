@@ -40,12 +40,12 @@ func tsBuildOptions() api.BuildOptions {
 
 func addBasicOpts(opts api.BuildOptions) api.BuildOptions {
 	opts.Bundle = true
-	opts.Engines = []api.Engine{
-		{Name: api.EngineChrome, Version: "58"},
-		{Name: api.EngineFirefox, Version: "57"},
-		{Name: api.EngineSafari, Version: "11"},
-		{Name: api.EngineEdge, Version: "16"},
-	}
+	// opts.Engines = []api.Engine{
+	// 	{Name: api.EngineChrome, Version: "58"},
+	// 	{Name: api.EngineFirefox, Version: "57"},
+	// 	{Name: api.EngineSafari, Version: "11"},
+	// 	{Name: api.EngineEdge, Version: "16"},
+	// }
 	opts.Sourcemap = api.SourceMapLinked
 	opts.Write = true
 

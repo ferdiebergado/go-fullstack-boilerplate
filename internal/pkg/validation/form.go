@@ -7,57 +7,44 @@ import (
 )
 
 type Form[T any] struct {
-	Params T
+	params T
+	val    reflect.Value
 	Errors errors
 }
 
 func NewForm[T any](params T) *Form[T] {
 	return &Form[T]{
-		Params: params,
+		params: params,
+		val:    reflect.ValueOf(params),
 		Errors: make(errors),
 	}
 }
 
 func (f *Form[T]) Required(fields ...string) {
 	for _, field := range fields {
-		val := reflect.ValueOf(f.Params)
-		if strings.TrimSpace(val.FieldByName(field).String()) == "" {
-			jsonTag, ok := GetJSONTag(f.Params, field)
-			if !ok {
-				slog.Error("cannot find json tag", "field", field)
-				return
-			}
+		if strings.TrimSpace(f.val.FieldByName(field).String()) == "" {
+			jsonTag := f.getJSONTag(field)
 			f.Errors.Add(jsonTag, "This field is required.")
 		}
 	}
 }
 
 func (f *Form[T]) PasswordsMatch(password string, passwordConfirmation string) {
-	val := reflect.ValueOf(f.Params)
-	p := val.FieldByName(password).String()
-	pc := val.FieldByName(passwordConfirmation).String()
+	p := f.val.FieldByName(password).String()
+	pc := f.val.FieldByName(passwordConfirmation).String()
 
 	slog.Debug("passwords match", "password", p, "password_confirmation", pc)
 
 	if p != "" && pc != "" && p != pc {
-		jsonTag, ok := GetJSONTag(f.Params, password)
-		if !ok {
-			slog.Error("cannot find json tag", "password", password, "password_confirmation", passwordConfirmation)
-			return
-		}
+		jsonTag := f.getJSONTag(password)
 		f.Errors.Add(jsonTag, "Passwords do not match.")
 	}
 }
 
 func (f *Form[T]) IsEmail(field string) {
-	val := reflect.ValueOf(f.Params)
-	email := val.FieldByName(field).String()
+	email := f.val.FieldByName(field).String()
 	if !IsValidEmail(email) {
-		jsonTag, ok := GetJSONTag(f.Params, field)
-		if !ok {
-			slog.Error("cannot find json tag", "field", field)
-			return
-		}
+		jsonTag := f.getJSONTag(field)
 		f.Errors.Add(jsonTag, "Email is not a valid email address.")
 	}
 }
@@ -66,8 +53,18 @@ func (f *Form[T]) IsValid() bool {
 	return len(f.Errors) == 0
 }
 
+func (f *Form[T]) getJSONTag(field string) string {
+	jsonTag, ok := GetJSONTag(f.params, field)
+	if !ok {
+		slog.Error("cannot find json tag", "field", field)
+		return field
+	}
+
+	return jsonTag
+}
+
 // GetJSONTag retrieves the JSON tag for a field with the specified name
-func GetJSONTag(structure interface{}, fieldName string) (string, bool) {
+func GetJSONTag(structure any, fieldName string) (string, bool) {
 	typ := reflect.TypeOf(structure)
 
 	if typ.Kind() != reflect.Struct {

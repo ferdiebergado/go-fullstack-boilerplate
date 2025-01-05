@@ -1,30 +1,31 @@
 package user
 
-import (
-	"database/sql"
+import "context"
 
-	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/config"
-	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/http/html"
-	"github.com/ferdiebergado/goexpress"
+type AuthMethod string
+
+const (
+	Basic AuthMethod = "email/password"
+	OAuth AuthMethod = "oauth"
 )
 
-type Auth struct {
-	config *config.Config
-	db     *sql.DB
-	router *goexpress.Router
+type SignUpParams struct {
+	Email                string `json:"email"`
+	Password             string `json:"password"`
+	PasswordConfirmation string `json:"password_confirmation"`
 }
 
-func NewAuthHandler(config *config.Config, conn *sql.DB, router *goexpress.Router) *Auth {
-	return &Auth{
-		config: config,
-		db:     conn,
-		router: router,
-	}
+type SignInParams struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
 }
 
-func (a *Auth) AddAuthHandler() *Handler {
-	repo := NewAuthRepo(&a.config.DB, a.db)
-	service := NewAuthService(a.config, repo)
-	htmlTemplate := html.NewTemplate(&a.config.HTML)
-	return NewHandler(a.config, a.router, service, htmlTemplate)
+type OAuthParams struct {
+	OAuthProvider string `json:"oauth_provider"`
+	OAuthID       string `json:"oauth_id"`
+}
+
+type Authenticator interface {
+	SignUp(context.Context, SignUpParams) (*User, error)
+	SignIn(context.Context, string) (string, error)
 }

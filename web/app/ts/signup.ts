@@ -1,4 +1,6 @@
+import { clearErrors, showError } from "./form";
 import { showNotification } from "./notification";
+import { isRequiredInputFilled, isValidEmail } from "./validation";
 
 const frm = document.forms.namedItem("frmSignup") as HTMLFormElement;
 const inputEmail = frm.querySelector("#email") as HTMLInputElement;
@@ -14,7 +16,52 @@ async function signUpUser(e: SubmitEvent) {
 	e.preventDefault();
 	isLoading = true;
 	updateSignupBtn();
-	clearErrors();
+	clearErrors(frm);
+
+	const email = inputEmail.value;
+	const password = inputPassword.value;
+	const passwordConfirm = inputRetypePass.value;
+
+	const emailErr: string[] = [];
+	const passwordErr: string[] = [];
+	const passwordConfirmErr: string[] = [];
+
+	let isValid = true;
+
+	if (!isRequiredInputFilled(inputEmail)) {
+		emailErr.push("Email is required");
+		isValid = false;
+	}
+
+	if (!isRequiredInputFilled(inputPassword)) {
+		passwordErr.push("Password is required");
+		isValid = false;
+	}
+
+	if (!isRequiredInputFilled(inputRetypePass)) {
+		passwordConfirmErr.push("Password confirmation is required");
+		isValid = false;
+	}
+
+	if (!isValidEmail(email)) {
+		emailErr.push("Email must be a valid email address");
+		isValid = false;
+	}
+
+	if (password != passwordConfirm) {
+		passwordErr.push("Passwords do not match");
+		isValid = false;
+	}
+
+	if (!isValid) {
+		if (emailErr.length > 0) showError(inputEmail, emailErr);
+		if (passwordErr.length > 0) showError(inputPassword, passwordErr);
+
+		showNotification("error", "Invalid input!");
+		isLoading = false;
+		updateSignupBtn();
+		return;
+	}
 
 	try {
 		const res = await fetch(frm.action, {
@@ -72,10 +119,20 @@ async function signUpUser(e: SubmitEvent) {
 }
 
 function comparePasswords(): void {
-	if (inputRetypePass.value && inputRetypePass.value != inputPassword.value) {
-		inputRetypePass.classList.add("error");
+	const helpText = inputPassword.nextElementSibling as HTMLElement;
+
+	if (
+		inputRetypePass.value &&
+		inputPassword.value &&
+		inputRetypePass.value != inputPassword.value
+	) {
+		inputPassword.classList.add("error");
+		helpText.textContent = "Passwords do not match";
+		helpText.style.display = "block";
 	} else {
-		inputRetypePass.classList.remove("error");
+		inputPassword.classList.remove("error");
+		helpText.textContent = "";
+		helpText.style.display = "none";
 	}
 }
 
@@ -87,32 +144,12 @@ function updateSignupBtn(): void {
 	btnSignup.textContent = btnText;
 }
 
-function showError(el: HTMLInputElement, errors: string[]): void {
-	el.classList.add("error");
+frm.addEventListener("input", function (event) {
+	const target = event.target as Element;
+	if (target.matches("#password") || target.matches("#password_confirmation"))
+		comparePasswords();
+});
 
-	const helpText = el.nextElementSibling as HTMLElement;
-
-	if (helpText) {
-		Array.from({ length: errors.length }, (_, i) => {
-			helpText.textContent += errors[i] + "\n";
-		});
-		helpText.style.display = "block";
-	}
-}
-
-function clearErrors(): void {
-	frm.querySelectorAll(".error").forEach((e) => {
-		e.classList.remove("error");
-	});
-
-	frm.querySelectorAll<HTMLElement>(".help-text").forEach((e) => {
-		e.textContent = "";
-		e.style.display = "none";
-	});
-}
-
-inputPassword.addEventListener("input", comparePasswords);
-inputRetypePass.addEventListener("input", comparePasswords);
 frm.addEventListener("submit", signUpUser);
 
 console.log("Waiting for user to sign up...");

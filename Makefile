@@ -57,7 +57,7 @@ force:
 
 ## test: Run the unit tests
 test:
-	go test -v -race ./...
+	docker compose -f $(COMPOSE_DIR)/compose.testing.yml up --build
 
 ## integration: Run the integration tests
 integration:

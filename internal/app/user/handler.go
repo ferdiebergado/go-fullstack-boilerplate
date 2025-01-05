@@ -36,7 +36,7 @@ func (h *Handler) HandleSignUp(w http.ResponseWriter, _ *http.Request) {
 }
 
 func (h *Handler) HandleSignUpForm(w http.ResponseWriter, r *http.Request) {
-	params, err := request.JSON[BasicAuthParams](r)
+	params, err := request.JSON[SignUpParams](r)
 
 	if err != nil {
 		httpError := errtypes.HTTPError{
@@ -51,14 +51,7 @@ func (h *Handler) HandleSignUpForm(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	authData := AuthData{
-		Email:                params.Email,
-		Password:             params.Password,
-		PasswordConfirmation: params.PasswordConfirmation,
-		AuthMethod:           Basic,
-	}
-
-	user, err := h.service.SignUp(r.Context(), authData)
+	user, err := h.service.SignUp(r.Context(), params)
 
 	if err != nil {
 		var inputErr *validation.InputError
@@ -111,7 +104,8 @@ func (h *Handler) HandleSignUpForm(w http.ResponseWriter, r *http.Request) {
 		response.RenderError(w, serverError, res)
 		return
 	}
-	res := &response.APIResponse[User]{
+
+	res := &response.APIResponse[*User]{
 		Success: true,
 		Message: "Sign up successful!",
 		Data:    &user,
@@ -119,6 +113,10 @@ func (h *Handler) HandleSignUpForm(w http.ResponseWriter, r *http.Request) {
 
 	slog.Debug("sending response", slog.Bool("success", res.Success), "message", res.Message, "data", res.Data)
 	response.RenderJSON(w, http.StatusCreated, res)
+}
+
+func (h *Handler) HandleSignin(w http.ResponseWriter, _ *http.Request) {
+	h.htmlTemplate.Render(w, nil, "signin.html")
 }
 
 func (h *Handler) HandleSignInForm(w http.ResponseWriter, r *http.Request) {
@@ -137,13 +135,7 @@ func (h *Handler) HandleSignInForm(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	authData := AuthData{
-		Email:      params.Email,
-		Password:   params.Password,
-		AuthMethod: Basic,
-	}
-
-	err = h.service.SignIn(r.Context(), authData)
+	err = h.service.SignIn(r.Context(), params)
 
 	if err != nil {
 		if errors.Is(err, ErrUserPassInvalid) {
@@ -166,6 +158,28 @@ func (h *Handler) HandleSignInForm(w http.ResponseWriter, r *http.Request) {
 							valErr.Description,
 						},
 					},
+				},
+			}
+			response.RenderError(w, valErr, res)
+			return
+		}
+
+		var inputErr *validation.InputError
+		if errors.As(err, &inputErr) {
+			valErr := &errtypes.HTTPError{
+				AppError: &errtypes.AppError{
+					Description: inputErr.Error(),
+					Err:         inputErr,
+					Severity:    errtypes.Low,
+				},
+				Code: http.StatusUnauthorized,
+			}
+
+			res := &response.APIResponse[validation.InputError]{
+				Success: false,
+				Message: "Invalid input!",
+				Data: &validation.InputError{
+					Errors: inputErr.Errors,
 				},
 			}
 			response.RenderError(w, valErr, res)

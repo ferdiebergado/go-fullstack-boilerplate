@@ -138,7 +138,7 @@ make restart proxy
 make stop
 ```
 
-### Other Tasks
+### Help
 
 View the usage information by running make.
 
@@ -149,7 +149,7 @@ make
 ## TODOs
 
 -   [x] Health endpoint
--   [ ] Login with email and password
+-   [x] Login with email and password
 -   [ ] Email verification
 -   [ ] Secure Cookie Session Management
 -   [ ] Login with Google (OAuth2)

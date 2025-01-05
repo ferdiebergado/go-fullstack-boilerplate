@@ -166,8 +166,10 @@ func main() {
 
 		switch asset {
 		case "css":
+			build(cssOpts)
 			watch(cssOpts)
 		case "ts":
+			build(tsOpts)
 			watch(tsOpts)
 		}
 	} else {

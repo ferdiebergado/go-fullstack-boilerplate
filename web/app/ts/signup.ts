@@ -48,7 +48,7 @@ async function signUpUser(e: SubmitEvent) {
 		isValid = false;
 	}
 
-	if (password != passwordConfirm) {
+	if (password && passwordConfirm && password != passwordConfirm) {
 		passwordErr.push("Passwords do not match");
 		isValid = false;
 	}

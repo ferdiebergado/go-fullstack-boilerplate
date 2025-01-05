@@ -70,7 +70,7 @@ input:focus {
 	border-color: red !important;
 }
 
-.signin-link {
+.auth-link {
 	margin-top: 1rem;
 	text-align: center;
 }

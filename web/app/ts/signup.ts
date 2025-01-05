@@ -2,7 +2,7 @@ import { clearErrors, showError } from "./form";
 import { showNotification } from "./notification";
 import { isRequiredInputFilled, isValidEmail } from "./validation";
 
-const frm = document.forms.namedItem("frmSignup") as HTMLFormElement;
+const frm = document.getElementById("frmSignup") as HTMLFormElement;
 const inputEmail = frm.querySelector("#email") as HTMLInputElement;
 const inputPassword = frm.querySelector("#password") as HTMLInputElement;
 const inputRetypePass = frm.querySelector(

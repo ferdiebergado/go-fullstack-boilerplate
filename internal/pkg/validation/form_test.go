@@ -22,8 +22,8 @@ func TestNewForm(t *testing.T) {
 	}
 	form := NewForm(params)
 
-	if form.Params != params {
-		t.Errorf("expected Params to be %+v, got %+v", params, form.Params)
+	if form.params != params {
+		t.Errorf("expected Params to be %+v, got %+v", params, form.params)
 	}
 
 	if len(form.Errors) != 0 {
@@ -54,25 +54,45 @@ func TestFormRequired(t *testing.T) {
 }
 
 func TestFormPasswordsMatch(t *testing.T) {
-	params := TestParams{
-		Password:             "password123",
-		PasswordConfirmation: "password321",
-	}
-	form := NewForm(params)
+	t.Run("Should pass when the passwords are the same", func(t *testing.T) {
+		params := TestParams{
+			Password:             "password123",
+			PasswordConfirmation: "password123",
+		}
+		form := NewForm(params)
 
-	form.PasswordsMatch("Password", "PasswordConfirmation")
+		form.PasswordsMatch("Password", "PasswordConfirmation")
 
-	if len(form.Errors) != 1 {
-		t.Errorf("expected 1 error, got %d", len(form.Errors))
-	}
+		if len(form.Errors) != 0 {
+			t.Errorf("expected no error, got %d", len(form.Errors))
+		}
 
-	if _, exists := form.Errors["password"]; !exists {
-		t.Errorf("expected error for field 'password' not found")
-	}
+		if _, exists := form.Errors["password"]; exists {
+			t.Errorf("expected no error for field 'password' but found errors")
+		}
+	})
 
-	if form.Errors["password"][0] != "Passwords do not match." {
-		t.Errorf("expected error message 'Passwords do not match.', got '%s'", form.Errors["password"][0])
-	}
+	t.Run("Should fail when the passwords are not the same", func(t *testing.T) {
+		params := TestParams{
+			Password:             "password123",
+			PasswordConfirmation: "password321",
+		}
+		form := NewForm(params)
+
+		form.PasswordsMatch("Password", "PasswordConfirmation")
+
+		if len(form.Errors) != 1 {
+			t.Errorf("expected 1 error, got %d", len(form.Errors))
+		}
+
+		if _, exists := form.Errors["password"]; !exists {
+			t.Errorf("expected error for field 'password' not found")
+		}
+
+		if form.Errors["password"][0] != "Passwords do not match." {
+			t.Errorf("expected error message 'Passwords do not match.', got '%s'", form.Errors["password"][0])
+		}
+	})
 }
 
 func TestFormIsEmail(t *testing.T) {

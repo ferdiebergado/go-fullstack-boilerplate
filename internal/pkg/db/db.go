@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log/slog"
+	"sync"
 
 	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/config"
 )
@@ -36,4 +37,18 @@ func Connect(ctx context.Context, cfg config.DBConfig) (*sql.DB, error) {
 	slog.Debug("Database config", slog.Group("Connection", slog.Duration("conn_max_life_time", cfg.ConnMaxLifetime), slog.Int("max_idle_connections", cfg.MaxIdleConnections), slog.Int("max_open_connections", cfg.MaxOpenConnections)), slog.Duration("ping_timeout", cfg.PingTimeout), "ssl_mode", cfg.SSLMode)
 
 	return db, nil
+}
+
+func WaitDisconnect(ctx context.Context, wg *sync.WaitGroup, conn *sql.DB) {
+	defer wg.Done() // Signal completion of database shutdown
+	<-ctx.Done()
+
+	slog.Info("Closing database connection...")
+
+	if err := conn.Close(); err != nil {
+		slog.Error("failed to close the database connection", "error", err)
+		return
+	}
+
+	slog.Info("Database closed successfully.")
 }

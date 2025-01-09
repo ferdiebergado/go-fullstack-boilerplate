@@ -1,3 +1,5 @@
+name: gfb-dev
+
 services:
   app:
     build:

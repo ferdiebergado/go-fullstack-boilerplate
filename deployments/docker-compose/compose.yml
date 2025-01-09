@@ -1,3 +1,5 @@
+name: gfb-base
+
 services:
   # Go Web App Service
   app:

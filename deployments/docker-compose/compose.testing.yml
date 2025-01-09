@@ -1,3 +1,5 @@
+name: gfb-test
+
 services:
   app:
     build:

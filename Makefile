@@ -24,7 +24,7 @@ dev:
 
 ## stop: Stop all running services
 stop:
-	docker compose -f $(COMPOSE_DIR)/compose.yml down
+	docker compose -f $(COMPOSE_DIR)/compose.yml -f $(COMPOSE_DIR)/compose.development.yml down
 
 ## restart: Restart a service: make restart proxy
 restart:

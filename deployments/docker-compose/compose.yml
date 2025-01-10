@@ -47,7 +47,7 @@ services:
     environment:
       - SERVER_PORT=${SERVER_PORT}
     volumes:
-      - ../../configs/nginx.conf.template:/etc/nginx/nginx.conf.template:Z
+      - ../../configs/nginx:/etc/nginx/conf.d:Z
     depends_on:
       app:
         condition: service_healthy

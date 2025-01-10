@@ -12,7 +12,7 @@ services:
       context: ../../
       dockerfile: build/docker/nginx.Dockerfile
     volumes:
-      - ../../configs/nginx.conf.template:/etc/nginx/nginx.conf.template:Z
+      - ../../configs/nginx:/etc/nginx/conf.d:Z
 
 volumes:
   gfb_postgresql_data:

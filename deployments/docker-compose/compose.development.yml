@@ -14,6 +14,6 @@ services:
 
   proxy:
     volumes:
-      - ../../configs/nginx.conf.template:/etc/nginx/nginx.conf.template:Z
+      - ../../configs/nginx:/etc/nginx/conf.d:Z
       - ../../build/docker/scripts/start-nginx.sh:/start-nginx.sh:Z
       - ../../web/static:/usr/share/nginx/html:Z

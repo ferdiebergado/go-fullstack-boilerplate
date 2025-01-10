@@ -24,12 +24,12 @@ dev:
 
 ## stop: Stop all running services
 stop:
-	docker compose -f $(COMPOSE_DIR)/compose.yml -f $(COMPOSE_DIR)/compose.development.yml down
+	docker compose -f $(COMPOSE_DIR)/compose.yml -f $(COMPOSE_DIR)/compose.$(APP_ENV).yml down
 
 ## restart: Restart a service: make restart proxy
 restart:
-	docker compose build $(wordlist 2, $(words $(MAKECMDGOALS)), $(MAKECMDGOALS))
-	docker compose -f $(COMPOSE_DIR)/compose.yml up --no-deps -d $(wordlist 2, $(words $(MAKECMDGOALS)), $(MAKECMDGOALS))
+	docker compose -f $(COMPOSE_DIR)/compose.yml -f $(COMPOSE_DIR)/compose.$(APP_ENV).yml build $(wordlist 2, $(words $(MAKECMDGOALS)), $(MAKECMDGOALS))
+	docker compose -f $(COMPOSE_DIR)/compose.yml -f $(COMPOSE_DIR)/compose.$(APP_ENV).yml up --no-deps -d $(wordlist 2, $(words $(MAKECMDGOALS)), $(MAKECMDGOALS))
 
 ## psql: Invoke psql on the running database instance
 psql:

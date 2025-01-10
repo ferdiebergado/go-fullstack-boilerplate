@@ -14,7 +14,7 @@ type Config struct {
 
 type HTTPServerConfig struct {
 	Addr            string
-	Port            string
+	Port            int
 	ShutdownTimeout time.Duration
 	ReadTimeout     time.Duration
 	WriteTimeout    time.Duration
@@ -46,7 +46,7 @@ func Load() *Config {
 	return &Config{
 		Server: HTTPServerConfig{
 			Addr:            env.Get("SERVER_HOST", "0.0.0.0"),
-			Port:            env.Get("SERVER_PORT", "8888"),
+			Port:            env.GetInt("SERVER_PORT", 8888),
 			ShutdownTimeout: time.Duration(env.GetInt("SERVER_SHUTDOWN_TIMEOUT", 10)) * time.Second,
 			ReadTimeout:     time.Duration(env.GetInt("SERVER_READ_TIMEOUT", 10)) * time.Second,
 			WriteTimeout:    time.Duration(env.GetInt("SERVER_WRITE_TIMEOUT", 10)) * time.Second,

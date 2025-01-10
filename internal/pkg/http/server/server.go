@@ -23,7 +23,7 @@ type Server struct {
 func New(cfg *config.HTTPServerConfig, router *goexpress.Router) *Server {
 	// Start the httpServer
 	srv := &http.Server{
-		Addr:    fmt.Sprintf("%s:%s", cfg.Addr, cfg.Port),
+		Addr:    fmt.Sprintf("%s:%d", cfg.Addr, cfg.Port),
 		Handler: router,
 	}
 

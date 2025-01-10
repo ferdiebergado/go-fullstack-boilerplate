@@ -106,13 +106,15 @@ http {
 
 		root /usr/share/nginx/html;
 
+		error_page 404 /404.html;
+
 		# Serve index.html at the root path
 		location = / {
 			try_files /index.html =404;
 		}
 
 		# images, icons, video, audio, HTC, CSS and Javascript
-		location ~* \.(?:jpg|jpeg|gif|png|ico|cur|gz|svg|svgz|mp4|ogg|ogv|webm|htc|css|js)$ {
+		location ~* \.(?:jpg|jpeg|gif|png|ico|cur|gz|svg|svgz|mp4|ogg|ogv|webm|htc|css|js|map)$ {
 			expires 1d;
 			access_log off;
 			add_header Cache-Control "public";
@@ -124,17 +126,23 @@ http {
 			open_file_cache_errors on;
 		}
 
+		# IMPORTANT: Location for error pages - MUST be BEFORE the proxy location
+		location ~ ^/(404\.html|50x\.html)$ {
+			internal; # Important for security. Prevents direct access
+		}
+
 		# Proxy requests to the Go app
 		location / {
 			proxy_pass http://app;
+
 			# Use HTTP/1.1 instead of HTTP/1.0 for upstream connections
 			proxy_http_version 1.1;
+
+			# proxy headers
 			proxy_set_header Host $host;
 			proxy_set_header X-Real-IP $remote_addr;
 			proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-			proxy_set_header X-Forwarded-Proto $scheme;
-
-			# Remove any "Connection: close" header and handle WebSockets (see "map" below)
+			proxy_hide_header X-Powered-By;
 			proxy_set_header Upgrade $http_upgrade;
 			proxy_set_header Connection $connection_upgrade;
 
@@ -144,10 +152,15 @@ http {
 			proxy_read_timeout 60s;
 
 			# Buffering - Important for performance, but can be adjusted
-			proxy_buffering on;
+			proxy_buffering off;
 			proxy_buffers 8 32k;
 			proxy_busy_buffers_size 64k;
 			proxy_max_temp_file_size 0; # Disable writing to disk
+
+			proxy_intercept_errors on;
+
+			error_page 404 /404.html;
+			error_page 500 502 503 504 /50x.html;
 		}
 
 		location ~ /.well-known {

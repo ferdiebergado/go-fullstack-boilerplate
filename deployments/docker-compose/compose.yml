@@ -9,6 +9,7 @@ services:
     container_name: gfb-app
     volumes:
       - gfb_mod_cache:/go/pkg/mod:Z
+      - gfb_build_cache:/root/.cache/go-build:Z
     healthcheck:
       test:
         ["CMD-SHELL", "curl -f http://app:${SERVER_PORT}/api/health || exit 1"]
@@ -75,3 +76,4 @@ services:
 
 volumes:
   gfb_mod_cache:
+  gfb_build_cache:

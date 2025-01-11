@@ -8,6 +8,7 @@ services:
       - ../../.env
     volumes:
       - gfb_mod_cache:/go/pkg/mod:Z
+      - gfb_build_cache:/root/.cache/go-build:Z
       - ../../.:/app:Z
     ports:
       - 3000:${SERVER_PORT}

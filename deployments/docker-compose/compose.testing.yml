@@ -11,7 +11,9 @@ services:
       - ../../.env.testing
     volumes:
       - gfb_test_mod_cache:/go/pkg/mod:Z
+      - gfb_test_build_cache:/root/.cache/go-build:Z
       - ../../.:/test:Z
 
 volumes:
   gfb_test_mod_cache:
+  gfb_test_build_cache:

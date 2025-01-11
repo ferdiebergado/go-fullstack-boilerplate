@@ -9,14 +9,14 @@ import (
 type Form[T any] struct {
 	params T
 	val    reflect.Value
-	Errors errors
+	Error  *Error
 }
 
 func NewForm[T any](params T) *Form[T] {
 	return &Form[T]{
 		params: params,
 		val:    reflect.ValueOf(params),
-		Errors: make(errors),
+		Error:  NewError(),
 	}
 }
 
@@ -24,7 +24,7 @@ func (f *Form[T]) Required(fields ...string) {
 	for _, field := range fields {
 		if strings.TrimSpace(f.val.FieldByName(field).String()) == "" {
 			jsonTag := f.getJSONTag(field)
-			f.Errors.Add(jsonTag, "This field is required.")
+			f.Error.Add(jsonTag, "This field is required.")
 		}
 	}
 }
@@ -37,7 +37,7 @@ func (f *Form[T]) PasswordsMatch(password string, passwordConfirmation string) {
 
 	if p != "" && pc != "" && p != pc {
 		jsonTag := f.getJSONTag(password)
-		f.Errors.Add(jsonTag, "Passwords do not match.")
+		f.Error.Add(jsonTag, "Passwords do not match.")
 	}
 }
 
@@ -45,12 +45,12 @@ func (f *Form[T]) IsEmail(field string) {
 	email := f.val.FieldByName(field).String()
 	if !IsValidEmail(email) {
 		jsonTag := f.getJSONTag(field)
-		f.Errors.Add(jsonTag, "Email is not a valid email address.")
+		f.Error.Add(jsonTag, "Email is not a valid email address.")
 	}
 }
 
 func (f *Form[T]) IsValid() bool {
-	return len(f.Errors) == 0
+	return f.Error.Count() == 0
 }
 
 func (f *Form[T]) getJSONTag(field string) string {

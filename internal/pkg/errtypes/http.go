@@ -22,7 +22,7 @@ func ServerError(err error) *HTTPError {
 	}
 }
 
-func ValidationError(inputErr validation.InputError) *HTTPError {
+func ValidationError(inputErr validation.Error) *HTTPError {
 	return &HTTPError{
 		AppError: &AppError{
 			Description: inputErr.Error(),

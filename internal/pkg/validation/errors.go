@@ -1,23 +1,33 @@
 package validation
 
-type errors map[string][]string
+type Errors map[string][]string
 
-func (e errors) Add(field string, msg string) {
-	e[field] = append(e[field], msg)
+type Error struct {
+	Errors Errors `json:"errors"`
 }
 
-func (e errors) Get(field string) []string {
-	errs := e[field]
+func NewError() *Error {
+	return &Error{
+		Errors: make(Errors),
+	}
+}
+
+func (e *Error) Add(field string, msg string) {
+	e.Errors[field] = append(e.Errors[field], msg)
+}
+
+func (e *Error) Get(field string) []string {
+	errs := e.Errors[field]
 	if len(errs) == 0 {
 		return nil
 	}
 	return errs
 }
 
-type InputError struct {
-	Errors errors `json:"errors"`
+func (e *Error) Count() int {
+	return len(e.Errors)
 }
 
-func (e *InputError) Error() string {
+func (e *Error) Error() string {
 	return "Invalid input!"
 }

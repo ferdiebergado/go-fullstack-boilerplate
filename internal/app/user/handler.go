@@ -54,11 +54,11 @@ func (h *Handler) HandleSignUpForm(w http.ResponseWriter, r *http.Request) {
 	user, err := h.service.SignUp(r.Context(), params)
 
 	if err != nil {
-		var inputErr *validation.InputError
+		var inputErr *validation.Error
 		if errors.As(err, &inputErr) {
 			valErr := errtypes.ValidationError(*inputErr)
 
-			res := &response.APIResponse[validation.InputError]{
+			res := &response.APIResponse[validation.Error]{
 				Success: false,
 				Message: valErr.Description,
 				Data:    inputErr,
@@ -78,10 +78,10 @@ func (h *Handler) HandleSignUpForm(w http.ResponseWriter, r *http.Request) {
 				Code: http.StatusUnprocessableEntity,
 			}
 
-			res := &response.APIResponse[validation.InputError]{
+			res := &response.APIResponse[validation.Error]{
 				Success: false,
 				Message: "Invalid input!",
-				Data: &validation.InputError{
+				Data: &validation.Error{
 					Errors: map[string][]string{
 						"email": {
 							valErr.Description,
@@ -149,10 +149,10 @@ func (h *Handler) HandleSignInForm(w http.ResponseWriter, r *http.Request) {
 				Code: http.StatusUnauthorized,
 			}
 
-			res := &response.APIResponse[validation.InputError]{
+			res := &response.APIResponse[validation.Error]{
 				Success: false,
 				Message: "Invalid input!",
-				Data: &validation.InputError{
+				Data: &validation.Error{
 					Errors: map[string][]string{
 						"email": {
 							valErr.Description,
@@ -164,7 +164,7 @@ func (h *Handler) HandleSignInForm(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		var inputErr *validation.InputError
+		var inputErr *validation.Error
 		if errors.As(err, &inputErr) {
 			valErr := &errtypes.HTTPError{
 				AppError: &errtypes.AppError{
@@ -175,10 +175,10 @@ func (h *Handler) HandleSignInForm(w http.ResponseWriter, r *http.Request) {
 				Code: http.StatusUnauthorized,
 			}
 
-			res := &response.APIResponse[validation.InputError]{
+			res := &response.APIResponse[validation.Error]{
 				Success: false,
 				Message: "Invalid input!",
-				Data: &validation.InputError{
+				Data: &validation.Error{
 					Errors: inputErr.Errors,
 				},
 			}

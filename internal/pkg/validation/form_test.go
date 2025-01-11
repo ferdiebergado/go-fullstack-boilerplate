@@ -26,8 +26,8 @@ func TestNewForm(t *testing.T) {
 		t.Errorf("expected Params to be %+v, got %+v", params, form.params)
 	}
 
-	if len(form.Errors) != 0 {
-		t.Errorf("expected Errors to be empty, got %+v", form.Errors)
+	if form.Error.Count() != 0 {
+		t.Errorf("expected Errors to be empty, got %+v", form.Error)
 	}
 }
 
@@ -40,16 +40,16 @@ func TestFormRequired(t *testing.T) {
 
 	form.Required("Name", "Email")
 
-	if len(form.Errors) != 1 {
-		t.Errorf("expected 1 error, got %d", len(form.Errors))
+	if form.Error.Count() != 1 {
+		t.Errorf("expected 1 error, got %d", form.Error.Count())
 	}
 
-	if _, exists := form.Errors["name"]; !exists {
+	if len(form.Error.Get("name")) == 0 {
 		t.Errorf("expected error for field 'name' not found")
 	}
 
-	if form.Errors["name"][0] != "This field is required." {
-		t.Errorf("expected error message 'This field is required.', got '%s'", form.Errors["name"][0])
+	if form.Error.Get("name")[0] != "This field is required." {
+		t.Errorf("expected error message 'This field is required.', got '%s'", form.Error.Get("name")[0])
 	}
 }
 
@@ -63,11 +63,11 @@ func TestFormPasswordsMatch(t *testing.T) {
 
 		form.PasswordsMatch("Password", "PasswordConfirmation")
 
-		if len(form.Errors) != 0 {
-			t.Errorf("expected no error, got %d", len(form.Errors))
+		if form.Error.Count() != 0 {
+			t.Errorf("expected no error, got %d", form.Error.Count())
 		}
 
-		if _, exists := form.Errors["password"]; exists {
+		if len(form.Error.Get("password")) != 0 {
 			t.Errorf("expected no error for field 'password' but found errors")
 		}
 	})
@@ -81,16 +81,16 @@ func TestFormPasswordsMatch(t *testing.T) {
 
 		form.PasswordsMatch("Password", "PasswordConfirmation")
 
-		if len(form.Errors) != 1 {
-			t.Errorf("expected 1 error, got %d", len(form.Errors))
+		if form.Error.Count() != 1 {
+			t.Errorf("expected 1 error, got %d", form.Error.Count())
 		}
 
-		if _, exists := form.Errors["password"]; !exists {
+		if len(form.Error.Get("password")) == 0 {
 			t.Errorf("expected error for field 'password' not found")
 		}
 
-		if form.Errors["password"][0] != "Passwords do not match." {
-			t.Errorf("expected error message 'Passwords do not match.', got '%s'", form.Errors["password"][0])
+		if form.Error.Get("password")[0] != "Passwords do not match." {
+			t.Errorf("expected error message 'Passwords do not match.', got '%s'", form.Error.Get("password")[0])
 		}
 	})
 }
@@ -103,16 +103,16 @@ func TestFormIsEmail(t *testing.T) {
 
 	form.IsEmail("Email")
 
-	if len(form.Errors) != 1 {
-		t.Errorf("expected 1 error, got %d", len(form.Errors))
+	if form.Error.Count() != 1 {
+		t.Errorf("expected 1 error, got %d", form.Error.Count())
 	}
 
-	if _, exists := form.Errors["email"]; !exists {
+	if len(form.Error.Get("email")) == 0 {
 		t.Errorf("expected error for field 'email' not found")
 	}
 
-	if form.Errors["email"][0] != "Email is not a valid email address." {
-		t.Errorf("expected error message 'Email is not a valid email address.', got '%s'", form.Errors["email"][0])
+	if form.Error.Get("email")[0] != "Email is not a valid email address." {
+		t.Errorf("expected error message 'Email is not a valid email address.', got '%s'", form.Error.Get("email")[0])
 	}
 }
 

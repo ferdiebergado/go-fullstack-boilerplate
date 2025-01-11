@@ -40,8 +40,8 @@ func (s *service) SignUp(ctx context.Context, params SignUpParams) (*User, error
 	form.IsEmail("Email")
 
 	if !form.IsValid() {
-		return nil, &validation.InputError{
-			Errors: form.Errors,
+		return nil, &validation.Error{
+			Errors: form.Error.Errors,
 		}
 	}
 
@@ -63,8 +63,8 @@ func (s *service) SignIn(ctx context.Context, params SignInParams) error {
 	form.IsEmail("Email")
 
 	if !form.IsValid() {
-		return &validation.InputError{
-			Errors: form.Errors,
+		return &validation.Error{
+			Errors: form.Error.Errors,
 		}
 	}
 

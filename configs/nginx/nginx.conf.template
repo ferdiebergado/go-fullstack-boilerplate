@@ -157,7 +157,7 @@ http {
 		location @json_error {
 			default_type application/json;
 			add_header Content-Type application/json;
-			return 404
+			return 404 "{}";
 		}
 
 		# Proxy requests to the Go app

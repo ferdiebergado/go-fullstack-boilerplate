@@ -1,6 +1,6 @@
 type APIResponse<T> = {
-	success: string;
 	message: string;
+	errors: ValidationError;
 	data: T;
 };
 
@@ -14,3 +14,13 @@ type ValidationErrors = {
 };
 
 type NotificationType = "success" | "error";
+
+type ButtonAttrs = {
+	btn: HTMLButtonElement;
+	text: string;
+	loadingText: string;
+};
+
+type ValidationErrorMap = {
+	[key: string]: string[];
+};

@@ -1,4 +1,4 @@
-import { clearErrors, showError } from "./form";
+import { clearFormErrors, showFormError, updateSubmitBtn } from "./form";
 import { showNotification } from "./notification";
 import { isRequiredInputFilled, isValidEmail } from "./validation";
 
@@ -10,56 +10,74 @@ const inputRetypePass = frm.querySelector(
 ) as HTMLInputElement;
 const btnSignup = frm.querySelector("#btnSignup") as HTMLButtonElement;
 
+const btnAttrs = {
+	btn: btnSignup,
+	text: "Sign Up",
+	loadingText: "Signing up...",
+};
+
+const validationErrors: ValidationErrorMap = {
+	email: [],
+	password: [],
+	passwordConfirm: [],
+};
+
 let isLoading = false;
 
-async function signUpUser(e: SubmitEvent) {
-	e.preventDefault();
-	isLoading = true;
-	updateSignupBtn();
-	clearErrors(frm);
-
+function validate(): boolean {
 	const email = inputEmail.value;
 	const password = inputPassword.value;
 	const passwordConfirm = inputRetypePass.value;
 
-	const emailErr: string[] = [];
-	const passwordErr: string[] = [];
-	const passwordConfirmErr: string[] = [];
-
 	let isValid = true;
 
 	if (!isRequiredInputFilled(inputEmail)) {
-		emailErr.push("Email is required");
+		validationErrors.email.push("Email is required");
 		isValid = false;
 	}
 
 	if (!isRequiredInputFilled(inputPassword)) {
-		passwordErr.push("Password is required");
+		validationErrors.password.push("Password is required");
 		isValid = false;
 	}
 
 	if (!isRequiredInputFilled(inputRetypePass)) {
-		passwordConfirmErr.push("Password confirmation is required");
+		validationErrors.passwordConfirm.push(
+			"Password confirmation is required"
+		);
 		isValid = false;
 	}
 
 	if (!isValidEmail(email)) {
-		emailErr.push("Email must be a valid email address");
+		validationErrors.email.push("Email must be a valid email address");
 		isValid = false;
 	}
 
 	if (password && passwordConfirm && password != passwordConfirm) {
-		passwordErr.push("Passwords do not match");
+		validationErrors.password.push("Passwords do not match");
 		isValid = false;
 	}
 
+	return isValid;
+}
+
+async function signUpUser(e: SubmitEvent) {
+	e.preventDefault();
+	isLoading = true;
+	updateSubmitBtn(btnAttrs, isLoading);
+	clearFormErrors(frm);
+
+	const isValid = validate();
+
 	if (!isValid) {
-		if (emailErr.length > 0) showError(inputEmail, emailErr);
-		if (passwordErr.length > 0) showError(inputPassword, passwordErr);
+		if (validationErrors.email.length > 0)
+			showFormError(inputEmail, validationErrors.email);
+		if (validationErrors.password.length > 0)
+			showFormError(inputPassword, validationErrors.password);
 
 		showNotification("error", "Invalid input!");
 		isLoading = false;
-		updateSignupBtn();
+		updateSubmitBtn(btnAttrs, isLoading);
 		return;
 	}
 
@@ -76,45 +94,37 @@ async function signUpUser(e: SubmitEvent) {
 			}),
 		});
 
-		const {
-			success,
-			message,
-			data,
-		}: APIResponse<ValidationErrors | undefined> = await res.json();
+		if (!res.ok) {
+			const { message, errors }: APIResponse<undefined> =
+				await res.json();
 
-		console.log("success", success, "message", message, "data", data);
-
-		let notifType: NotificationType = "success";
-
-		if (!success) {
-			notifType = "error";
-			if (data) {
-				const { errors } = data;
-
-				if (errors) {
-					for (const field in errors) {
-						console.log("field", field, "errors", errors[field]);
-						const el = document.getElementById(field);
-						if (el) {
-							showError(
-								document.getElementById(
-									field
-								) as HTMLInputElement,
-								errors[field]
-							);
-						}
+			if (errors) {
+				for (const field in errors) {
+					console.log("field", field, "errors", errors[field]);
+					const el = document.getElementById(field);
+					if (el) {
+						showFormError(
+							document.getElementById(field) as HTMLInputElement,
+							errors[field]
+						);
 					}
 				}
 			}
-		}
 
-		showNotification(notifType, message);
+			showNotification("error", message);
+		} else {
+			const { message, data }: APIResponse<undefined> = await res.json();
+
+			console.log("message", message, "data", data);
+
+			showNotification("success", message);
+		}
 	} catch (error) {
 		console.log(error);
 		if (error instanceof Error) showNotification("error", error.message);
 	} finally {
 		isLoading = false;
-		updateSignupBtn();
+		updateSubmitBtn(btnAttrs, isLoading);
 	}
 }
 
@@ -134,14 +144,6 @@ function comparePasswords(): void {
 		helpText.textContent = "";
 		helpText.style.display = "none";
 	}
-}
-
-function updateSignupBtn(): void {
-	btnSignup.disabled = isLoading;
-	let btnText = "Sign Up";
-	if (isLoading) btnText = "Signing up...";
-
-	btnSignup.textContent = btnText;
 }
 
 frm.addEventListener("input", function (event) {

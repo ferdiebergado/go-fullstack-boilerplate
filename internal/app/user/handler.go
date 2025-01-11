@@ -58,10 +58,9 @@ func (h *Handler) HandleSignUpForm(w http.ResponseWriter, r *http.Request) {
 		if errors.As(err, &inputErr) {
 			valErr := errtypes.ValidationError(*inputErr)
 
-			res := &response.APIResponse[validation.Error]{
-				Success: false,
+			res := &response.APIResponse[any]{
 				Message: valErr.Description,
-				Data:    inputErr,
+				Errors:  inputErr.Errors,
 			}
 
 			response.RenderError(w, valErr, res)
@@ -79,13 +78,10 @@ func (h *Handler) HandleSignUpForm(w http.ResponseWriter, r *http.Request) {
 			}
 
 			res := &response.APIResponse[validation.Error]{
-				Success: false,
 				Message: "Invalid input!",
-				Data: &validation.Error{
-					Errors: map[string][]string{
-						"email": {
-							valErr.Description,
-						},
+				Errors: validation.Errors{
+					"email": {
+						valErr.Description,
 					},
 				},
 			}
@@ -97,7 +93,6 @@ func (h *Handler) HandleSignUpForm(w http.ResponseWriter, r *http.Request) {
 		serverError := errtypes.ServerError(err)
 
 		res := &response.APIResponse[any]{
-			Success: false,
 			Message: serverError.Error(),
 		}
 
@@ -106,12 +101,11 @@ func (h *Handler) HandleSignUpForm(w http.ResponseWriter, r *http.Request) {
 	}
 
 	res := &response.APIResponse[*User]{
-		Success: true,
 		Message: "Sign up successful!",
 		Data:    &user,
 	}
 
-	slog.Debug("sending response", slog.Bool("success", res.Success), "message", res.Message, "data", res.Data)
+	slog.Debug("sending response", "message", res.Message, "data", res.Data)
 	response.RenderJSON(w, http.StatusCreated, res)
 }
 
@@ -150,16 +144,14 @@ func (h *Handler) HandleSignInForm(w http.ResponseWriter, r *http.Request) {
 			}
 
 			res := &response.APIResponse[validation.Error]{
-				Success: false,
 				Message: "Invalid input!",
-				Data: &validation.Error{
-					Errors: map[string][]string{
-						"email": {
-							valErr.Description,
-						},
+				Errors: validation.Errors{
+					"email": {
+						valErr.Description,
 					},
 				},
 			}
+
 			response.RenderError(w, valErr, res)
 			return
 		}
@@ -176,12 +168,10 @@ func (h *Handler) HandleSignInForm(w http.ResponseWriter, r *http.Request) {
 			}
 
 			res := &response.APIResponse[validation.Error]{
-				Success: false,
 				Message: "Invalid input!",
-				Data: &validation.Error{
-					Errors: inputErr.Errors,
-				},
+				Errors:  inputErr.Errors,
 			}
+
 			response.RenderError(w, valErr, res)
 			return
 		}
@@ -189,7 +179,6 @@ func (h *Handler) HandleSignInForm(w http.ResponseWriter, r *http.Request) {
 		serverError := errtypes.ServerError(err)
 
 		res := &response.APIResponse[any]{
-			Success: false,
 			Message: serverError.Error(),
 		}
 
@@ -198,7 +187,6 @@ func (h *Handler) HandleSignInForm(w http.ResponseWriter, r *http.Request) {
 	}
 
 	res := &response.APIResponse[any]{
-		Success: true,
 		Message: "Logged in.",
 	}
 

@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/errtypes"
+	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/validation"
 	gkitResponse "github.com/ferdiebergado/gopherkit/http/response"
 )
 
@@ -14,9 +15,9 @@ type PageData struct {
 }
 
 type APIResponse[T any] struct {
-	Success bool   `json:"success"`
-	Message string `json:"message"`
-	Data    *T     `json:"data,omitempty"`
+	Message string            `json:"message,omitempty"`
+	Errors  validation.Errors `json:"errors,omitempty"`
+	Data    *T                `json:"data,omitempty"`
 }
 
 func RenderError[T any](w http.ResponseWriter, err *errtypes.HTTPError, data *T) {

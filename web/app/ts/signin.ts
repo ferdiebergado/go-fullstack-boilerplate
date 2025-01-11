@@ -1,4 +1,4 @@
-import { clearErrors, showError } from "./form";
+import { clearFormErrors, showFormError, updateSubmitBtn } from "./form";
 import { showNotification } from "./notification";
 import { isRequiredInputFilled, isValidEmail } from "./validation";
 
@@ -7,20 +7,17 @@ const inputEmail = frm.querySelector("#email") as HTMLInputElement;
 const inputPassword = frm.querySelector("#password") as HTMLInputElement;
 const btnSignin = frm.querySelector("#btnSignin") as HTMLButtonElement;
 
+const btnAttrs = {
+	btn: btnSignin,
+	text: "Sign In",
+	loadingText: "Signing in...",
+};
+const emailErr: string[] = [];
+const passwordErr: string[] = [];
+
 let isLoading = false;
 
-async function signInUser(e: SubmitEvent) {
-	e.preventDefault();
-	isLoading = true;
-	updateSigninBtn();
-	clearErrors(frm);
-
-	const email = inputEmail.value;
-	const password = inputPassword.value;
-
-	const emailErr: string[] = [];
-	const passwordErr: string[] = [];
-
+function validate(): boolean {
 	let isValid = true;
 
 	if (!isRequiredInputFilled(inputEmail)) {
@@ -33,18 +30,29 @@ async function signInUser(e: SubmitEvent) {
 		isValid = false;
 	}
 
-	if (!isValidEmail(email)) {
+	if (!isValidEmail(inputEmail.value)) {
 		emailErr.push("Email must be a valid email address");
 		isValid = false;
 	}
 
+	return isValid;
+}
+
+async function signInUser(e: SubmitEvent) {
+	e.preventDefault();
+	isLoading = true;
+	updateSubmitBtn(btnAttrs, isLoading);
+	clearFormErrors(frm);
+
+	const isValid = validate();
+
 	if (!isValid) {
-		if (emailErr.length > 0) showError(inputEmail, emailErr);
-		if (passwordErr.length > 0) showError(inputPassword, passwordErr);
+		if (emailErr.length > 0) showFormError(inputEmail, emailErr);
+		if (passwordErr.length > 0) showFormError(inputPassword, passwordErr);
 
 		showNotification("error", "Invalid input!");
 		isLoading = false;
-		updateSigninBtn();
+		updateSubmitBtn(btnAttrs, isLoading);
 		return;
 	}
 
@@ -55,59 +63,43 @@ async function signInUser(e: SubmitEvent) {
 				"Content-Type": "application/json",
 			},
 			body: JSON.stringify({
-				email,
-				password,
+				email: inputEmail.value,
+				password: inputPassword.value,
 			}),
 		});
 
-		const {
-			success,
-			message,
-			data,
-		}: APIResponse<ValidationErrors | undefined> = await res.json();
+		if (!res.ok) {
+			const { message, errors }: APIResponse<undefined> =
+				await res.json();
 
-		console.log("success", success, "message", message, "data", data);
-
-		let notifType: NotificationType = "success";
-
-		if (!success) {
-			notifType = "error";
-			if (data) {
-				const { errors } = data;
-
-				if (errors) {
-					for (const field in errors) {
-						console.log("field", field, "errors", errors[field]);
-						const el = document.getElementById(field);
-						if (el) {
-							showError(
-								document.getElementById(
-									field
-								) as HTMLInputElement,
-								errors[field]
-							);
-						}
+			if (errors) {
+				for (const field in errors) {
+					console.log("field", field, "errors", errors[field]);
+					const el = document.getElementById(field);
+					if (el) {
+						showFormError(
+							document.getElementById(field) as HTMLInputElement,
+							errors[field]
+						);
 					}
 				}
 			}
-		}
 
-		showNotification(notifType, message);
+			showNotification("error", message);
+		} else {
+			const { message, data }: APIResponse<undefined> = await res.json();
+
+			console.log("message", message, "data", data);
+
+			showNotification("success", message);
+		}
 	} catch (error) {
 		console.log(error);
 		if (error instanceof Error) showNotification("error", error.message);
 	} finally {
 		isLoading = false;
-		updateSigninBtn();
+		updateSubmitBtn(btnAttrs, isLoading);
 	}
-}
-
-function updateSigninBtn(): void {
-	btnSignin.disabled = isLoading;
-	let btnText = "Sign In";
-	if (isLoading) btnText = "Signing in...";
-
-	btnSignin.textContent = btnText;
 }
 
 frm.addEventListener("submit", signInUser);

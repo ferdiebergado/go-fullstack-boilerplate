@@ -7,3 +7,7 @@ export function isValidEmail(email: string) {
 export function isRequiredInputFilled(input: HTMLInputElement) {
 	return input.value.trim() !== ""; // Check for non-empty and non-whitespace value
 }
+
+export function resetValidationErrors(errors: string[]): void {
+	errors.splice(0, errors.length);
+}

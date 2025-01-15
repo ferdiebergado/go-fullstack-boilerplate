@@ -6,6 +6,8 @@ services:
   db:
     volumes:
       - gfb_postgresql_data:/var/lib/postgresql/data
+      - ../../configs/postgres/postgresql.conf:/etc/postgresql/postgresql.conf:Z
+      - ../../configs/postgres/psqlrc:/root/.psqlrc:Z
 
   proxy:
     build:

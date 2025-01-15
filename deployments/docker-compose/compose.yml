@@ -35,8 +35,8 @@ services:
       timeout: 5s
       retries: 5
     volumes:
-      - ../../configs/postgresql.conf:/etc/postgresql/postgresql.conf:Z
-      - ../../configs/psqlrc:/root/.psqlrc:Z
+      - ../../configs/postgres/postgresql.conf:/etc/postgresql/postgresql.conf:Z
+      - ../../configs/postgres/psqlrc:/root/.psqlrc:Z
     restart: always
     ports:
       - 5432:5432

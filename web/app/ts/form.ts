@@ -15,9 +15,9 @@ export function showFormError(el: HTMLInputElement, errors: string[]): void {
 			li.textContent = error;
 			fragment.appendChild(li);
 		});
+		resetValidationErrors(errors);
 		helpText.appendChild(fragment);
 		helpText.style.display = "block";
-		resetValidationErrors(errors);
 	}
 }
 

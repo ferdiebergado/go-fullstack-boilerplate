@@ -21,7 +21,6 @@ type Server struct {
 }
 
 func New(cfg *config.HTTPServerConfig, router *goexpress.Router) *Server {
-	// Start the httpServer
 	srv := &http.Server{ // #nosec G112 -- Server timeouts delegated to reverse proxy
 		Addr:    fmt.Sprintf("%s:%d", cfg.Addr, cfg.Port),
 		Handler: router,
@@ -38,15 +37,15 @@ func (s *Server) Start() {
 	slog.Info("HTTP Server listening", "addr", s.cfg.Addr, slog.Int("port", s.cfg.Port))
 
 	if err := s.server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-		slog.Error("HTTP server ListenAndServe error", "error", err) // Handle unexpected errors
+		slog.Error("HTTP server ListenAndServe error", "error", err)
 	}
 
-	slog.Info("Server has stopped listening") // Log after server shutdown
+	slog.Info("Server has stopped listening")
 }
 
 // Handle server shutdown on signal
 func (s *Server) WaitForShutdown(wg *sync.WaitGroup, idleConnsClosed chan struct{}) {
-	defer wg.Done() // Signal completion of server shutdown
+	defer wg.Done()
 	sigint := make(chan os.Signal, 1)
 	signal.Notify(sigint, syscall.SIGINT, syscall.SIGTERM)
 	<-sigint

@@ -16,9 +16,6 @@ type HTTPServerConfig struct {
 	Addr            string
 	Port            int
 	ShutdownTimeout time.Duration
-	ReadTimeout     time.Duration
-	WriteTimeout    time.Duration
-	IdleTimeout     time.Duration
 }
 
 type DBConfig struct {
@@ -48,9 +45,6 @@ func Load() *Config {
 			Addr:            env.Get("SERVER_HOST", "0.0.0.0"),
 			Port:            env.GetInt("SERVER_PORT", 8888),
 			ShutdownTimeout: time.Duration(env.GetInt("SERVER_SHUTDOWN_TIMEOUT", 10)) * time.Second,
-			ReadTimeout:     time.Duration(env.GetInt("SERVER_READ_TIMEOUT", 10)) * time.Second,
-			WriteTimeout:    time.Duration(env.GetInt("SERVER_WRITE_TIMEOUT", 10)) * time.Second,
-			IdleTimeout:     time.Duration(env.GetInt("SERVER_IDLE_TIMEOUT", 60)) * time.Second,
 		},
 		DB: DBConfig{
 			Driver:             "pgx",

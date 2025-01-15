@@ -3,7 +3,6 @@ import { showNotification } from "./notification";
 import {
 	isRequiredInputFilled,
 	isValidEmail,
-	resetValidationErrors,
 } from "./validation";
 
 const frm = document.getElementById("frmSignup") as HTMLFormElement;

@@ -80,7 +80,7 @@ func (s *service) SignIn(ctx context.Context, params SignInParams) error {
 
 	slog.Debug("sign in", "hash", hash)
 
-	match, err := security.VerifyPassword(params.Password, hash)
+	match, err := security.VerifyPassword(params.Password, *hash)
 
 	if err != nil {
 		return err

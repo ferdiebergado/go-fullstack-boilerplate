@@ -27,5 +27,5 @@ type OAuthParams struct {
 
 type Authenticator interface {
 	SignUp(context.Context, SignUpParams) (*User, error)
-	SignIn(context.Context, string) (string, error)
+	SignIn(context.Context, string) (*string, error)
 }

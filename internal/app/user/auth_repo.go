@@ -50,13 +50,13 @@ SELECT password_hash FROM users
 WHERE email = $1
 `
 
-func (r *repo) SignIn(ctx context.Context, email string) (string, error) {
+func (r *repo) SignIn(ctx context.Context, email string) (*string, error) {
 	row := r.db.QueryRowContext(ctx, singInQuery, email)
 
 	var hash string
 	if err := row.Scan(&hash); err != nil {
-		return "", err
+		return nil, err
 	}
 
-	return hash, nil
+	return &hash, nil
 }

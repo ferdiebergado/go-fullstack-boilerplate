@@ -53,7 +53,7 @@ jobs:
         uses: aquasecurity/trivy-action@0.28.0
         with:
           scan-type: "image"
-          image-ref: "docker.io/library/docker-compose-app:latest"
+          image-ref: "docker.io/library/gfb-base-app:latest"
           format: "table"
           exit-code: "1"
           ignore-unfixed: true

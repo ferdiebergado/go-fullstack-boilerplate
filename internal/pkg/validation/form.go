@@ -43,7 +43,7 @@ func (f *Form[T]) PasswordsMatch(password string, passwordConfirmation string) {
 
 func (f *Form[T]) IsEmail(field string) {
 	email := f.val.FieldByName(field).String()
-	if !IsValidEmail(email) {
+	if email != "" && !IsValidEmail(email) {
 		jsonTag := f.getJSONTag(field)
 		f.Error.Add(jsonTag, "Email is not a valid email address.")
 	}

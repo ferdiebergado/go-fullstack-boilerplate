@@ -22,7 +22,7 @@ type Server struct {
 
 func New(cfg *config.HTTPServerConfig, router *goexpress.Router) *Server {
 	// Start the httpServer
-	srv := &http.Server{
+	srv := &http.Server{ // #nosec G112 -- Server timeouts delegated to reverse proxy
 		Addr:    fmt.Sprintf("%s:%d", cfg.Addr, cfg.Port),
 		Handler: router,
 	}
@@ -35,7 +35,7 @@ func New(cfg *config.HTTPServerConfig, router *goexpress.Router) *Server {
 
 // Start the server
 func (s *Server) Start() {
-	slog.Info("HTTP Server listening", "addr", s.cfg.Addr)
+	slog.Info("HTTP Server listening", "addr", s.cfg.Addr, slog.Int("port", s.cfg.Port))
 
 	if err := s.server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 		slog.Error("HTTP server ListenAndServe error", "error", err) // Handle unexpected errors

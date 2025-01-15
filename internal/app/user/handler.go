@@ -4,7 +4,6 @@ import (
 	"errors"
 	"log/slog"
 	"net/http"
-	"strings"
 
 	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/config"
 	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/errtypes"
@@ -32,22 +31,14 @@ func NewHandler(cfg *config.Config, router *goexpress.Router, service AuthServic
 }
 
 func (h *Handler) HandleSignUp(w http.ResponseWriter, _ *http.Request) {
-	h.htmlTemplate.Render(w, nil, "signup.html")
+	h.htmlTemplate.Render(w, "signup.html", nil)
 }
 
 func (h *Handler) HandleSignUpForm(w http.ResponseWriter, r *http.Request) {
 	params, err := request.JSON[SignUpParams](r)
 
 	if err != nil {
-		httpError := errtypes.HTTPError{
-			AppError: &errtypes.AppError{
-				Description: "cannot read auth request",
-				Err:         err,
-				Severity:    errtypes.Low,
-			},
-			Code: http.StatusBadRequest,
-		}
-		response.RenderError[any](w, &httpError, nil)
+		response.RenderError(w, r, errtypes.BadRequest(err))
 		return
 	}
 
@@ -58,45 +49,27 @@ func (h *Handler) HandleSignUpForm(w http.ResponseWriter, r *http.Request) {
 		if errors.As(err, &inputErr) {
 			valErr := errtypes.ValidationError(*inputErr)
 
-			res := &response.APIResponse[any]{
-				Message: valErr.Description,
-				Errors:  inputErr.Errors,
-			}
-
-			response.RenderError(w, valErr, res)
+			response.RenderError(w, r, valErr)
 			return
 		}
 
-		if errors.Is(err, ErrEmailExists) {
-			valErr := &errtypes.HTTPError{
-				AppError: &errtypes.AppError{
-					Description: strings.Split(err.Error(), ":")[0],
-					Err:         errors.Unwrap(err),
-					Severity:    errtypes.Low,
-				},
-				Code: http.StatusUnprocessableEntity,
-			}
-
-			res := &response.APIResponse[validation.Error]{
-				Message: "Invalid input!",
-				Errors: validation.Errors{
-					"email": {
-						valErr.Description,
+		var emailErr *EmailExistsError
+		if errors.As(err, &emailErr) {
+			valErr := errtypes.ValidationError(
+				validation.Error{
+					Errors: validation.Errors{
+						"email": {
+							emailErr.Error(),
+						},
 					},
-				},
-			}
+				})
 
-			response.RenderError(w, valErr, res)
+			response.RenderError(w, r, valErr)
 			return
 		}
 
 		serverError := errtypes.ServerError(err)
-
-		res := &response.APIResponse[any]{
-			Message: serverError.Error(),
-		}
-
-		response.RenderError(w, serverError, res)
+		response.RenderError(w, r, serverError)
 		return
 	}
 
@@ -110,79 +83,37 @@ func (h *Handler) HandleSignUpForm(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) HandleSignin(w http.ResponseWriter, _ *http.Request) {
-	h.htmlTemplate.Render(w, nil, "signin.html")
+	h.htmlTemplate.Render(w, "signin.html", nil)
 }
 
 func (h *Handler) HandleSignInForm(w http.ResponseWriter, r *http.Request) {
 	params, err := request.JSON[SignInParams](r)
 
 	if err != nil {
-		httpError := errtypes.HTTPError{
-			AppError: &errtypes.AppError{
-				Description: "cannot read auth request",
-				Err:         err,
-				Severity:    errtypes.Low,
-			},
-			Code: http.StatusBadRequest,
-		}
-		response.RenderError[any](w, &httpError, nil)
+		httpError := errtypes.BadRequest(err)
+		response.RenderError(w, r, httpError)
 		return
 	}
 
 	err = h.service.SignIn(r.Context(), params)
 
 	if err != nil {
-		if errors.Is(err, ErrUserPassInvalid) {
-			innerErr := errors.Unwrap(err)
-			valErr := &errtypes.HTTPError{
-				AppError: &errtypes.AppError{
-					Description: innerErr.Error(),
-					Err:         innerErr,
-					Severity:    errtypes.Low,
-				},
-				Code: http.StatusUnauthorized,
-			}
-
-			res := &response.APIResponse[validation.Error]{
-				Message: "Invalid input!",
-				Errors: validation.Errors{
-					"email": {
-						valErr.Description,
-					},
-				},
-			}
-
-			response.RenderError(w, valErr, res)
+		var inputErr *validation.Error
+		if errors.As(err, &inputErr) {
+			valErr := errtypes.ValidationError(*inputErr)
+			response.RenderError(w, r, valErr)
 			return
 		}
 
-		var inputErr *validation.Error
-		if errors.As(err, &inputErr) {
-			valErr := &errtypes.HTTPError{
-				AppError: &errtypes.AppError{
-					Description: inputErr.Error(),
-					Err:         inputErr,
-					Severity:    errtypes.Low,
-				},
-				Code: http.StatusUnauthorized,
-			}
-
-			res := &response.APIResponse[validation.Error]{
-				Message: "Invalid input!",
-				Errors:  inputErr.Errors,
-			}
-
-			response.RenderError(w, valErr, res)
+		if errors.Is(err, ErrUserPassInvalid) {
+			innerErr := errors.Unwrap(err)
+			authErr := errtypes.AuthenticationError(innerErr)
+			response.RenderError(w, r, authErr)
 			return
 		}
 
 		serverError := errtypes.ServerError(err)
-
-		res := &response.APIResponse[any]{
-			Message: serverError.Error(),
-		}
-
-		response.RenderError(w, serverError, res)
+		response.RenderError(w, r, serverError)
 		return
 	}
 

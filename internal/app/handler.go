@@ -28,11 +28,11 @@ func NewHandler(router *goexpress.Router, service Service, cfg *config.Config, h
 }
 
 func (h *BaseHandler) HandleDashboard(w http.ResponseWriter, _ *http.Request) {
-	h.htmlTemplate.Render(w, nil, "dashboard.html")
+	h.htmlTemplate.Render(w, "dashboard.html", nil)
 }
 
 func (h *BaseHandler) HandleDBStats(w http.ResponseWriter, _ *http.Request) {
-	h.htmlTemplate.Render(w, nil, "dbstats.html")
+	h.htmlTemplate.Render(w, "dbstats.html", nil)
 }
 
 type HealthResponse struct {
@@ -50,8 +50,9 @@ func (h *BaseHandler) performHealthCheck(ctx context.Context) (*HealthResponse, 
 		}
 
 		healthErr := &errtypes.HTTPError{
-			AppError: &errtypes.AppError{Description: err.Error(), Err: err, Severity: errtypes.High},
-			Code:     http.StatusServiceUnavailable,
+			Msg:  err.Error(),
+			Err:  err,
+			Code: http.StatusServiceUnavailable,
 		}
 
 		return healthResponse, healthErr
@@ -73,7 +74,8 @@ func (h *BaseHandler) HandleHealthCheck(w http.ResponseWriter, r *http.Request) 
 	health, err := h.performHealthCheck(r.Context())
 
 	if err != nil {
-		response.RenderError(w, err, health)
+		response.RenderError(w, r, err)
+		return
 	}
 
 	response.RenderJSON(w, http.StatusOK, health)

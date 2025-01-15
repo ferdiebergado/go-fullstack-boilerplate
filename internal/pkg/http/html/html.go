@@ -2,7 +2,6 @@ package html
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"html/template"
 	"io/fs"
@@ -62,7 +61,7 @@ func parsePartials(layoutTmpl *template.Template, partialsDir string) {
 		panic(fmt.Errorf("load partials templates: %w", err))
 	}
 
-	slog.Debug("layout", "name", layoutTmpl.Name(), "defined_templates", layoutTmpl.DefinedTemplates())
+	slog.Debug("layout", "name", layoutTmpl.Name())
 }
 
 // Parse main templates from pagesDir
@@ -75,7 +74,7 @@ func parsePages(layoutTmpl *template.Template, templatePagesDir string) template
 		if !d.IsDir() && strings.HasSuffix(path, suffix) {
 			name := strings.TrimPrefix(path, templatePagesDir+"/")
 			tmplMap[name] = template.Must(template.Must(layoutTmpl.Clone()).ParseFS(web.TemplatesFS, path))
-			slog.Debug("parsed page", "path", path, "name", name, "define_templates", tmplMap[name].DefinedTemplates())
+			slog.Debug("parsed page", "path", path, "name", name)
 		}
 		return nil
 	})
@@ -110,13 +109,12 @@ func NewTemplate(cfg *config.HTMLTemplateConfig) *Template {
 	return &Template{templates: parsePages(layoutTmpl, pagesDir)}
 }
 
-func (t *Template) Render(w http.ResponseWriter, data any, name string) {
+func (t *Template) Render(w http.ResponseWriter, name string, data any) {
 	tmpl, ok := t.templates[name]
 
 	if !ok {
-		notFoundErr := errors.New("could not find template")
-		err := fmt.Errorf("get template %s: %w", name, notFoundErr)
-		response.RenderError[any](w, errtypes.ServerError(err), nil)
+		err := &TemplateNotFoundError{Template: name}
+		response.RenderError(w, nil, errtypes.ServerError(err))
 		return
 	}
 
@@ -124,7 +122,7 @@ func (t *Template) Render(w http.ResponseWriter, data any, name string) {
 
 	if err := tmpl.Execute(&buf, data); err != nil {
 		execErr := fmt.Errorf("execute template: %w", err)
-		response.RenderError[any](w, errtypes.ServerError(execErr), nil)
+		response.RenderError(w, nil, errtypes.ServerError(execErr))
 		return
 	}
 
@@ -133,7 +131,7 @@ func (t *Template) Render(w http.ResponseWriter, data any, name string) {
 
 	if err != nil {
 		writeErr := fmt.Errorf("write response: %w", err)
-		response.RenderError[any](w, errtypes.ServerError(writeErr), nil)
+		response.RenderError(w, nil, errtypes.ServerError(writeErr))
 		return
 	}
 }

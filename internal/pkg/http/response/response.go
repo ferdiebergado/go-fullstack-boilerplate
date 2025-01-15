@@ -1,6 +1,7 @@
 package response
 
 import (
+	"errors"
 	"log/slog"
 	"net/http"
 
@@ -20,23 +21,28 @@ type APIResponse[T any] struct {
 	Data    *T                `json:"data,omitempty"`
 }
 
-func RenderError[T any](w http.ResponseWriter, err *errtypes.HTTPError, data *T) {
-	slog.Error(err.Error(), "error", err.Err, "severity", err.Severity)
+func RenderError(w http.ResponseWriter, r *http.Request, err *errtypes.HTTPError) {
+	slog.Error(err.Msg, "error", err.Err)
 
-	if data != nil {
-		if err := gkitResponse.JSON(w, err.Code, data); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
+	if r.Header.Get("content-type") != "application/json" {
+		http.Error(w, err.Error(), err.Code)
 		return
 	}
 
-	http.Error(w, err.Error(), err.Code)
+	res := &APIResponse[any]{
+		Message: err.Error(),
+	}
+
+	var valErr *validation.Error
+	if errors.As(err.Err, &valErr) {
+		res.Errors = valErr.Errors
+	}
+
+	RenderJSON(w, err.Code, res)
 }
 
 func RenderJSON[T any](w http.ResponseWriter, status int, data *T) {
 	if err := gkitResponse.JSON(w, status, data); err != nil {
-		RenderError[T](w, errtypes.JSONEncodeError(err), nil)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }

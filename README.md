@@ -42,7 +42,7 @@ make dev
 
 ### Step 3
 
-Browse the application at [localhost:8080](http://locahost:8080).
+Browse the application at [localhost:8080](http://localhost:8080).
 
 ## Migrations
 

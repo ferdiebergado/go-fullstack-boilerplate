@@ -1,6 +1,10 @@
 import { clearFormErrors, showFormError, updateSubmitBtn } from "./form";
 import { showNotification } from "./notification";
-import { isRequiredInputFilled, isValidEmail } from "./validation";
+import {
+	isRequiredInputFilled,
+	isValidEmail,
+	resetValidationErrors,
+} from "./validation";
 
 const frm = document.getElementById("frmSignup") as HTMLFormElement;
 const inputEmail = frm.querySelector("#email") as HTMLInputElement;
@@ -146,10 +150,27 @@ function comparePasswords(): void {
 	}
 }
 
-frm.addEventListener("input", function (event) {
-	const target = event.target as Element;
-	if (target.matches("#password") || target.matches("#password_confirmation"))
+frm.addEventListener("change", function (event) {
+	const target = event.target as HTMLInputElement;
+	if (
+		target.matches("#password") ||
+		target.matches("#password_confirmation")
+	) {
 		comparePasswords();
+	} else if (target.matches("#email")) {
+		const helpTxt = target.nextElementSibling as HTMLElement;
+
+		if (helpTxt) {
+			helpTxt.classList.remove("error");
+			helpTxt.textContent = "";
+			helpTxt.style.display = "none";
+		}
+
+		target.classList.remove("error");
+		if (!isValidEmail(target.value)) {
+			showFormError(target, ["Email must be a valid email address"]);
+		}
+	}
 });
 
 frm.addEventListener("submit", signUpUser);

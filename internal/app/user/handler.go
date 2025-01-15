@@ -73,9 +73,9 @@ func (h *Handler) HandleSignUpForm(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res := &response.APIResponse[*User]{
+	res := &response.APIResponse[User]{
 		Message: "Sign up successful!",
-		Data:    &user,
+		Data:    user,
 	}
 
 	slog.Debug("sending response", "message", res.Message, "data", res.Data)

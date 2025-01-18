@@ -11,8 +11,8 @@ type ValidationError = {
 	errors: Errors;
 };
 
-type ValidationErrors = {
-	errors: ValidationError;
+type ValidationErrorMap = {
+	[key: string]: Errors;
 };
 
 type NotificationType = "success" | "error";
@@ -21,8 +21,4 @@ type ButtonAttrs = {
 	btn: HTMLButtonElement;
 	text: string;
 	loadingText: string;
-};
-
-type ValidationErrorMap = {
-	[key: string]: Errors;
 };

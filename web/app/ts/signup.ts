@@ -47,15 +47,8 @@ function handleInputChange(event: Event) {
 	) {
 		comparePasswords();
 	} else if (target.matches("#email")) {
-		const helpTxt = target.nextElementSibling as HTMLElement;
+		toggleError(event.target as HTMLInputElement, "");
 
-		if (helpTxt) {
-			helpTxt.classList.remove("error");
-			helpTxt.textContent = "";
-			helpTxt.style.display = "none";
-		}
-
-		target.classList.remove("error");
 		if (!isValidEmail(target.value)) {
 			showFormError(target, ["Email must be a valid email address"]);
 		}
@@ -95,16 +88,7 @@ async function signUpUser(e: SubmitEvent) {
 			const { message, errors }: APIResponse<undefined> =
 				await res.json();
 
-			if (errors) {
-				for (const field in errors) {
-					console.log("field", field, "errors", errors[field]);
-					const el = frmSignup.querySelector(`#${field}`);
-					if (el) {
-						showFormError(el as HTMLInputElement, errors[field]);
-					}
-				}
-			}
-
+			errors && handleFormErrors(errors, frmSignup);
 			showNotification("error", message);
 		} else {
 			const { message, data }: APIResponse<undefined> = await res.json();

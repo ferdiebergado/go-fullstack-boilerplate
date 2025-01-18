@@ -2,6 +2,7 @@ import {
 	clearFormErrors,
 	handleFormErrors,
 	showFormError,
+	toggleError,
 	updateSubmitBtn,
 } from "./form";
 import { showNotification } from "./notification";
@@ -29,7 +30,19 @@ const validationErrors: ValidationErrors = {
 
 let isLoading = false;
 
+frmSignin.addEventListener("change", handleInputChange);
 frmSignin.addEventListener("submit", signInUser);
+
+function handleInputChange(event: Event) {
+	const target = event.target as HTMLInputElement;
+	if (target.matches("#email")) {
+		toggleError(event.target as HTMLInputElement, "");
+
+		if (!isValidEmail(target.value)) {
+			showFormError(target, ["Email must be a valid email address"]);
+		}
+	}
+}
 
 async function signInUser(e: SubmitEvent) {
 	e.preventDefault();
@@ -63,16 +76,7 @@ async function signInUser(e: SubmitEvent) {
 			const { message, errors }: APIResponse<undefined> =
 				await res.json();
 
-			if (errors) {
-				for (const field in errors) {
-					console.log("field", field, "errors", errors[field]);
-					const el = frmSignin.querySelector(`#${field}`);
-					if (el) {
-						showFormError(el as HTMLInputElement, errors[field]);
-					}
-				}
-			}
-
+			errors && handleFormErrors(errors, frmSignin);
 			showNotification("error", message);
 		} else {
 			const { message, data }: APIResponse<undefined> = await res.json();

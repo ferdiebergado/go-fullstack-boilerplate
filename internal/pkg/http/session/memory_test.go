@@ -15,8 +15,7 @@ func TestMemorySessionStore(t *testing.T) {
 	store := session.NewMemorySessionStore(ttl, stopChan)
 
 	t.Run("Save and Retrieve Session", func(t *testing.T) {
-		err := store.Save("key1", "value1")
-		if err != nil {
+		if err := store.Save("key1", "value1"); err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
 
@@ -31,8 +30,7 @@ func TestMemorySessionStore(t *testing.T) {
 	})
 
 	t.Run("Prevent Duplicate Sessions", func(t *testing.T) {
-		err := store.Save("key1", "value2")
-		if !errors.Is(err, session.ErrSessionExists) {
+		if err := store.Save("key1", "value2"); !errors.Is(err, session.ErrSessionExists) {
 			t.Errorf("expected error '%v', got '%v'", session.ErrSessionExists, err)
 		}
 	})
@@ -45,39 +43,35 @@ func TestMemorySessionStore(t *testing.T) {
 	})
 
 	t.Run("Session Expiry", func(t *testing.T) {
-		err := store.Save("key2", "value2")
-		if err != nil {
+		if err := store.Save("key2", "value2"); err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
 
 		time.Sleep(ttl + 500*time.Millisecond) // Wait for the session to expire
 
-		_, err = store.Session("key2")
+		_, err := store.Session("key2")
 		if !errors.Is(err, session.ErrSessionExpired) {
 			t.Errorf("expected error '%v', got '%v'", session.ErrSessionExpired, err)
 		}
 	})
 
 	t.Run("Delete Session", func(t *testing.T) {
-		err := store.Save("key3", "value3")
-		if err != nil {
+		if err := store.Save("key3", "value3"); err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
 
-		err = store.DeleteSession("key3")
-		if err != nil {
+		if err := store.Destroy("key3"); err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
 
-		_, err = store.Session("key3")
+		_, err := store.Session("key3")
 		if !errors.Is(err, session.ErrSessionDoesNotExist) {
 			t.Errorf("expected error '%v', got '%v'", session.ErrSessionDoesNotExist, err)
 		}
 	})
 
 	t.Run("Delete Non-Existent Session", func(t *testing.T) {
-		err := store.DeleteSession("non-existent-key")
-		if !errors.Is(err, session.ErrSessionDoesNotExist) {
+		if err := store.Destroy("non-existent-key"); !errors.Is(err, session.ErrSessionDoesNotExist) {
 			t.Errorf("expected error '%v', got '%v'", session.ErrSessionDoesNotExist, err)
 		}
 	})
@@ -124,7 +118,7 @@ func TestMemorySessionStoreConcurrentAccess(t *testing.T) {
 		go func(i int) {
 			defer wg.Done()
 			sessionKey := "key" + string(rune(i))
-			err := store.DeleteSession(sessionKey)
+			err := store.Destroy(sessionKey)
 			if err != nil && !errors.Is(err, session.ErrSessionDoesNotExist) {
 				t.Errorf("unexpected error during delete: %v", err)
 			}

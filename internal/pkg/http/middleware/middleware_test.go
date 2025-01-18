@@ -30,7 +30,7 @@ func (m *MockSessionManager) Session(sessionID string) (string, error) {
 	return "", nil
 }
 
-func (m *MockSessionManager) DeleteSession(sessionKey string) error {
+func (m *MockSessionManager) Destroy(sessionKey string) error {
 	if m.DeleteSessionFunc != nil {
 		return m.DeleteSessionFunc(sessionKey)
 	}

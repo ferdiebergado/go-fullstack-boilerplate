@@ -8,5 +8,5 @@ type Manager interface {
 	Session(string) (string, error)
 
 	// Delete a session with the given key.
-	DeleteSession(string) error
+	Destroy(string) error
 }

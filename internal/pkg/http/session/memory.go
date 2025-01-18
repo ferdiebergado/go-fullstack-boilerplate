@@ -68,7 +68,7 @@ func (s *MemorySessionStore) Session(sessionKey string) (string, error) {
 	return item.value, nil
 }
 
-func (s *MemorySessionStore) DeleteSession(sessionKey string) error {
+func (s *MemorySessionStore) Destroy(sessionKey string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -82,12 +82,12 @@ func (s *MemorySessionStore) DeleteSession(sessionKey string) error {
 
 func (s *MemorySessionStore) cleanUpExpiredSessions() {
 	s.mu.Lock()
+	defer s.mu.Unlock()
 	for key, data := range s.sessions {
 		if s.ttl > 0 && time.Since(data.createdAt) > s.ttl {
 			delete(s.sessions, key)
 		}
 	}
-	s.mu.Unlock()
 }
 
 func (s *MemorySessionStore) StartCleanup(interval time.Duration) {
@@ -100,7 +100,7 @@ func (s *MemorySessionStore) StartCleanup(interval time.Duration) {
 			case <-ticker.C:
 				s.cleanUpExpiredSessions()
 			case <-s.stopChan:
-				return // Exit the goroutine
+				return
 			}
 		}
 	}()

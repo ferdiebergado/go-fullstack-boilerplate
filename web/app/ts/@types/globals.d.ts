@@ -1,12 +1,14 @@
 type APIResponse<T> = {
 	message: string;
-	errors: ValidationError;
-	data: T;
+	errors?: ValidationErrorMap;
+	data?: T;
 };
+
+type Errors = string[];
 
 type ValidationError = {
 	field: string;
-	errors: string[];
+	errors: Errors;
 };
 
 type ValidationErrors = {
@@ -20,8 +22,6 @@ type ButtonAttrs = {
 	text: string;
 	loadingText: string;
 };
-
-type Errors = string[];
 
 type ValidationErrorMap = {
 	[key: string]: Errors;

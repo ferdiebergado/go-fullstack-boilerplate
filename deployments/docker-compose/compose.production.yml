@@ -2,6 +2,12 @@ services:
   app:
     build:
       target: production
+    healthcheck:
+      test:
+        ["CMD-SHELL", "curl -f http://app:${SERVER_PORT}/api/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   db:
     volumes:
@@ -15,6 +21,9 @@ services:
       dockerfile: build/docker/nginx.Dockerfile
     volumes:
       - ../../configs/nginx:/etc/nginx/conf.d:Z
+    depends_on:
+      app:
+        condition: service_healthy
 
 volumes:
   gfb_postgresql_data:

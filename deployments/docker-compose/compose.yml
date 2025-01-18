@@ -10,12 +10,6 @@ services:
     volumes:
       - gfb_mod_cache:/go/pkg/mod
       - gfb_build_cache:/root/.cache/go-build
-    healthcheck:
-      test:
-        ["CMD-SHELL", "curl -f http://app:${SERVER_PORT}/api/health || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
     depends_on:
       migrate:
         condition: service_completed_successfully
@@ -30,7 +24,7 @@ services:
       - POSTGRES_DB=${DB_NAME}
       - POSTGRES_PASSWORD=${DB_PASSWORD}
     healthcheck:
-      test: [CMD-SHELL, "sh -c 'pg_isready -U ${DB_USER} -d ${DB_NAME}'"]
+      test: [CMD-SHELL, "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -50,8 +44,7 @@ services:
     volumes:
       - ../../configs/nginx:/etc/nginx/conf.d:Z
     depends_on:
-      app:
-        condition: service_healthy
+      - app
     command: ["./start-nginx.sh"]
     ports:
       - "8080:80"

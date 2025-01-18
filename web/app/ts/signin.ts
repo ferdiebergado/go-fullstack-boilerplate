@@ -1,55 +1,46 @@
-import { clearFormErrors, showFormError, updateSubmitBtn } from "./form";
+import {
+	clearFormErrors,
+	handleFormErrors,
+	showFormError,
+	updateSubmitBtn,
+} from "./form";
 import { showNotification } from "./notification";
 import { isRequiredInputFilled, isValidEmail } from "./validation";
 
-const frm = document.getElementById("frmSignin") as HTMLFormElement;
-const inputEmail = frm.querySelector("#email") as HTMLInputElement;
-const inputPassword = frm.querySelector("#password") as HTMLInputElement;
-const btnSignin = frm.querySelector("#btnSignin") as HTMLButtonElement;
+const frmSignin = document.getElementById("frmSignin") as HTMLFormElement;
+const inputEmail = frmSignin.querySelector("#email") as HTMLInputElement;
+const inputPassword = frmSignin.querySelector("#password") as HTMLInputElement;
+const btnSignin = frmSignin.querySelector("#btnSignin") as HTMLButtonElement;
 
 const btnAttrs = {
 	btn: btnSignin,
 	text: "Sign In",
 	loadingText: "Signing in...",
 };
-const emailErr: string[] = [];
-const passwordErr: string[] = [];
+type ValidationErrors = {
+	email: Errors;
+	password: Errors;
+};
+
+const validationErrors: ValidationErrors = {
+	email: [],
+	password: [],
+};
 
 let isLoading = false;
 
-function validate(): boolean {
-	let isValid = true;
-
-	if (!isRequiredInputFilled(inputEmail)) {
-		emailErr.push("Email is required");
-		isValid = false;
-	}
-
-	if (!isRequiredInputFilled(inputPassword)) {
-		passwordErr.push("Password is required");
-		isValid = false;
-	}
-
-	if (!isValidEmail(inputEmail.value)) {
-		emailErr.push("Email must be a valid email address");
-		isValid = false;
-	}
-
-	return isValid;
-}
+frmSignin.addEventListener("submit", signInUser);
 
 async function signInUser(e: SubmitEvent) {
 	e.preventDefault();
 	isLoading = true;
 	updateSubmitBtn(btnAttrs, isLoading);
-	clearFormErrors(frm);
+	clearFormErrors(frmSignin);
 
 	const isValid = validate();
 
 	if (!isValid) {
-		if (emailErr.length > 0) showFormError(inputEmail, emailErr);
-		if (passwordErr.length > 0) showFormError(inputPassword, passwordErr);
-
+		handleFormErrors(validationErrors, frmSignin);
 		showNotification("error", "Invalid input!");
 		isLoading = false;
 		updateSubmitBtn(btnAttrs, isLoading);
@@ -57,8 +48,8 @@ async function signInUser(e: SubmitEvent) {
 	}
 
 	try {
-		const res = await fetch(frm.action, {
-			method: frm.method,
+		const res = await fetch(frmSignin.action, {
+			method: frmSignin.method,
 			headers: {
 				"Content-Type": "application/json",
 			},
@@ -75,12 +66,9 @@ async function signInUser(e: SubmitEvent) {
 			if (errors) {
 				for (const field in errors) {
 					console.log("field", field, "errors", errors[field]);
-					const el = document.getElementById(field);
+					const el = frmSignin.querySelector(`#${field}`);
 					if (el) {
-						showFormError(
-							document.getElementById(field) as HTMLInputElement,
-							errors[field]
-						);
+						showFormError(el as HTMLInputElement, errors[field]);
 					}
 				}
 			}
@@ -94,7 +82,7 @@ async function signInUser(e: SubmitEvent) {
 			showNotification("success", message);
 		}
 	} catch (error) {
-		console.log(error);
+		console.log("Error during sign-in process:", error);
 		if (error instanceof Error) showNotification("error", error.message);
 	} finally {
 		isLoading = false;
@@ -102,6 +90,26 @@ async function signInUser(e: SubmitEvent) {
 	}
 }
 
-frm.addEventListener("submit", signInUser);
+function validate(): boolean {
+	let isValid = true;
 
-console.log("Waiting for user to sign in...");
+	validationErrors.email = [];
+	validationErrors.password = [];
+
+	if (!isRequiredInputFilled(inputEmail)) {
+		validationErrors.email.push("Email is required");
+		isValid = false;
+	}
+
+	if (!isRequiredInputFilled(inputPassword)) {
+		validationErrors.password.push("Password is required");
+		isValid = false;
+	}
+
+	if (!isValidEmail(inputEmail.value)) {
+		validationErrors.email.push("Email must be a valid email address");
+		isValid = false;
+	}
+
+	return isValid;
+}

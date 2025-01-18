@@ -1,17 +1,20 @@
-import { clearFormErrors, showFormError, updateSubmitBtn } from "./form";
-import { showNotification } from "./notification";
 import {
-	isRequiredInputFilled,
-	isValidEmail,
-} from "./validation";
+	clearFormErrors,
+	handleFormErrors,
+	showFormError,
+	toggleError,
+	updateSubmitBtn,
+} from "./form";
+import { showNotification } from "./notification";
+import { isRequiredInputFilled, isValidEmail } from "./validation";
 
-const frm = document.getElementById("frmSignup") as HTMLFormElement;
-const inputEmail = frm.querySelector("#email") as HTMLInputElement;
-const inputPassword = frm.querySelector("#password") as HTMLInputElement;
-const inputRetypePass = frm.querySelector(
+const frmSignup = document.getElementById("frmSignup") as HTMLFormElement;
+const inputEmail = frmSignup.querySelector("#email") as HTMLInputElement;
+const inputPassword = frmSignup.querySelector("#password") as HTMLInputElement;
+const inputRetypePass = frmSignup.querySelector(
 	"#password_confirmation"
 ) as HTMLInputElement;
-const btnSignup = frm.querySelector("#btnSignup") as HTMLButtonElement;
+const btnSignup = frmSignup.querySelector("#btnSignup") as HTMLButtonElement;
 
 const btnAttrs = {
 	btn: btnSignup,
@@ -19,7 +22,13 @@ const btnAttrs = {
 	loadingText: "Signing up...",
 };
 
-const validationErrors: ValidationErrorMap = {
+type ValidationErrors = {
+	email: Errors;
+	password: Errors;
+	passwordConfirm: Errors;
+};
+
+const validationErrors: ValidationErrors = {
 	email: [],
 	password: [],
 	passwordConfirm: [],
@@ -27,10 +36,100 @@ const validationErrors: ValidationErrorMap = {
 
 let isLoading = false;
 
+frmSignup.addEventListener("change", handleInputChange);
+frmSignup.addEventListener("submit", signUpUser);
+
+function handleInputChange(event: Event) {
+	const target = event.target as HTMLInputElement;
+	if (
+		target.matches("#password") ||
+		target.matches("#password_confirmation")
+	) {
+		comparePasswords();
+	} else if (target.matches("#email")) {
+		const helpTxt = target.nextElementSibling as HTMLElement;
+
+		if (helpTxt) {
+			helpTxt.classList.remove("error");
+			helpTxt.textContent = "";
+			helpTxt.style.display = "none";
+		}
+
+		target.classList.remove("error");
+		if (!isValidEmail(target.value)) {
+			showFormError(target, ["Email must be a valid email address"]);
+		}
+	}
+}
+
+async function signUpUser(e: SubmitEvent) {
+	e.preventDefault();
+	isLoading = true;
+	updateSubmitBtn(btnAttrs, isLoading);
+	clearFormErrors(frmSignup);
+
+	const isValid = validate();
+
+	if (!isValid) {
+		handleFormErrors(validationErrors, frmSignup);
+		showNotification("error", "Invalid input!");
+		isLoading = false;
+		updateSubmitBtn(btnAttrs, isLoading);
+		return;
+	}
+
+	try {
+		const res = await fetch(frmSignup.action, {
+			method: frmSignup.method,
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify({
+				email: inputEmail.value,
+				password: inputPassword.value,
+				password_confirmation: inputRetypePass.value,
+			}),
+		});
+
+		if (!res.ok) {
+			const { message, errors }: APIResponse<undefined> =
+				await res.json();
+
+			if (errors) {
+				for (const field in errors) {
+					console.log("field", field, "errors", errors[field]);
+					const el = frmSignup.querySelector(`#${field}`);
+					if (el) {
+						showFormError(el as HTMLInputElement, errors[field]);
+					}
+				}
+			}
+
+			showNotification("error", message);
+		} else {
+			const { message, data }: APIResponse<undefined> = await res.json();
+
+			console.log("message", message, "data", data);
+
+			showNotification("success", message);
+		}
+	} catch (error) {
+		console.log("Error during sign-up process:", error);
+		if (error instanceof Error) showNotification("error", error.message);
+	} finally {
+		isLoading = false;
+		updateSubmitBtn(btnAttrs, isLoading);
+	}
+}
+
 function validate(): boolean {
 	const email = inputEmail.value;
 	const password = inputPassword.value;
 	const passwordConfirm = inputRetypePass.value;
+
+	validationErrors.email = [];
+	validationErrors.password = [];
+	validationErrors.passwordConfirm = [];
 
 	let isValid = true;
 
@@ -64,114 +163,14 @@ function validate(): boolean {
 	return isValid;
 }
 
-async function signUpUser(e: SubmitEvent) {
-	e.preventDefault();
-	isLoading = true;
-	updateSubmitBtn(btnAttrs, isLoading);
-	clearFormErrors(frm);
-
-	const isValid = validate();
-
-	if (!isValid) {
-		if (validationErrors.email.length > 0)
-			showFormError(inputEmail, validationErrors.email);
-		if (validationErrors.password.length > 0)
-			showFormError(inputPassword, validationErrors.password);
-
-		showNotification("error", "Invalid input!");
-		isLoading = false;
-		updateSubmitBtn(btnAttrs, isLoading);
-		return;
-	}
-
-	try {
-		const res = await fetch(frm.action, {
-			method: frm.method,
-			headers: {
-				"Content-Type": "application/json",
-			},
-			body: JSON.stringify({
-				email: inputEmail.value,
-				password: inputPassword.value,
-				password_confirmation: inputRetypePass.value,
-			}),
-		});
-
-		if (!res.ok) {
-			const { message, errors }: APIResponse<undefined> =
-				await res.json();
-
-			if (errors) {
-				for (const field in errors) {
-					console.log("field", field, "errors", errors[field]);
-					const el = document.getElementById(field);
-					if (el) {
-						showFormError(
-							document.getElementById(field) as HTMLInputElement,
-							errors[field]
-						);
-					}
-				}
-			}
-
-			showNotification("error", message);
-		} else {
-			const { message, data }: APIResponse<undefined> = await res.json();
-
-			console.log("message", message, "data", data);
-
-			showNotification("success", message);
-		}
-	} catch (error) {
-		console.log(error);
-		if (error instanceof Error) showNotification("error", error.message);
-	} finally {
-		isLoading = false;
-		updateSubmitBtn(btnAttrs, isLoading);
-	}
-}
-
 function comparePasswords(): void {
-	const helpText = inputPassword.nextElementSibling as HTMLElement;
-
 	if (
 		inputRetypePass.value &&
 		inputPassword.value &&
-		inputRetypePass.value != inputPassword.value
+		inputRetypePass.value !== inputPassword.value
 	) {
-		inputPassword.classList.add("error");
-		helpText.textContent = "Passwords do not match";
-		helpText.style.display = "block";
+		toggleError(inputPassword, "Passwords do not match");
 	} else {
-		inputPassword.classList.remove("error");
-		helpText.textContent = "";
-		helpText.style.display = "none";
+		toggleError(inputPassword, "");
 	}
 }
-
-frm.addEventListener("change", function (event) {
-	const target = event.target as HTMLInputElement;
-	if (
-		target.matches("#password") ||
-		target.matches("#password_confirmation")
-	) {
-		comparePasswords();
-	} else if (target.matches("#email")) {
-		const helpTxt = target.nextElementSibling as HTMLElement;
-
-		if (helpTxt) {
-			helpTxt.classList.remove("error");
-			helpTxt.textContent = "";
-			helpTxt.style.display = "none";
-		}
-
-		target.classList.remove("error");
-		if (!isValidEmail(target.value)) {
-			showFormError(target, ["Email must be a valid email address"]);
-		}
-	}
-});
-
-frm.addEventListener("submit", signUpUser);
-
-console.log("Waiting for user to sign up...");

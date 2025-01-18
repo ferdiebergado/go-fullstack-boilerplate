@@ -21,6 +21,8 @@ type ButtonAttrs = {
 	loadingText: string;
 };
 
+type Errors = string[];
+
 type ValidationErrorMap = {
-	[key: string]: string[];
+	[key: string]: Errors;
 };

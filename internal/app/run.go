@@ -45,7 +45,8 @@ func Run(ctx context.Context) error {
 	router := goexpress.New()
 
 	// Create the application
-	application := New(cfg, conn, router)
+	stopChan := make(chan struct{})
+	application := New(cfg, conn, router, stopChan)
 	application.SetupRouter()
 
 	// Start the httpServer
@@ -63,6 +64,7 @@ func Run(ctx context.Context) error {
 	// Block until both database and server shutdown are complete
 	<-idleConnsClosed // Wait for server to shut down
 	wg.Wait()         // Wait for all shutdown tasks (including database)
+	close(stopChan)
 	slog.Info("All shutdown tasks completed. Exiting.")
 
 	return nil

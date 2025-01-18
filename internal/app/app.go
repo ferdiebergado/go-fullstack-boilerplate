@@ -19,13 +19,13 @@ type App struct {
 	sessionManager session.Manager
 }
 
-func New(cfg *config.Config, conn *sql.DB, router *goexpress.Router) *App {
+func New(cfg *config.Config, conn *sql.DB, router *goexpress.Router, stopChan <-chan struct{}) *App {
 	return &App{
 		cfg:            cfg,
 		db:             conn,
 		router:         router,
 		htmlTemplate:   html.NewTemplate(&cfg.HTML),
-		sessionManager: session.NewMemorySessionStore(cfg.Server.SessionDuration),
+		sessionManager: session.NewMemorySessionStore(cfg.Server.SessionDuration, stopChan),
 	}
 }
 

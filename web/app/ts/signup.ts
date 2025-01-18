@@ -78,9 +78,9 @@ async function signUpUser(e: SubmitEvent) {
 				"Content-Type": "application/json",
 			},
 			body: JSON.stringify({
-				email: inputEmail.value,
-				password: inputPassword.value,
-				password_confirmation: inputRetypePass.value,
+				email: inputEmail.value.trim(),
+				password: inputPassword.value.trim(),
+				password_confirmation: inputRetypePass.value.trim(),
 			}),
 		});
 
@@ -107,9 +107,9 @@ async function signUpUser(e: SubmitEvent) {
 }
 
 function validate(): boolean {
-	const email = inputEmail.value;
-	const password = inputPassword.value;
-	const passwordConfirm = inputRetypePass.value;
+	const email = inputEmail.value.trim();
+	const password = inputPassword.value.trim();
+	const passwordConfirm = inputRetypePass.value.trim();
 
 	validationErrors.email = [];
 	validationErrors.password = [];
@@ -151,7 +151,7 @@ function comparePasswords(): void {
 	if (
 		inputRetypePass.value &&
 		inputPassword.value &&
-		inputRetypePass.value !== inputPassword.value
+		inputRetypePass.value.trim() !== inputPassword.value.trim()
 	) {
 		toggleError(inputPassword, "Passwords do not match");
 	} else {

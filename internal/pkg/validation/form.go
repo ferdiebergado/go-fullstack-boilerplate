@@ -13,6 +13,7 @@ type Form[T any] struct {
 }
 
 func NewForm[T any](params T) *Form[T] {
+	TrimStructFields(&params)
 	return &Form[T]{
 		params: params,
 		val:    reflect.ValueOf(params),

@@ -67,8 +67,8 @@ async function signInUser(e: SubmitEvent) {
 				"Content-Type": "application/json",
 			},
 			body: JSON.stringify({
-				email: inputEmail.value,
-				password: inputPassword.value,
+				email: inputEmail.value.trim(),
+				password: inputPassword.value.trim(),
 			}),
 		});
 

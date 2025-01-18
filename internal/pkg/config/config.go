@@ -1,6 +1,7 @@
 package config
 
 import (
+	"net/http"
 	"time"
 
 	"github.com/ferdiebergado/gopherkit/env"
@@ -16,6 +17,10 @@ type HTTPServerConfig struct {
 	Addr            string
 	Port            int
 	ShutdownTimeout time.Duration
+	SessionName     string
+	SameSite        http.SameSite
+	SessionDuration time.Duration
+	CsrfName        string
 }
 
 type DBConfig struct {
@@ -45,6 +50,10 @@ func Load() *Config {
 			Addr:            env.Get("SERVER_HOST", "0.0.0.0"),
 			Port:            env.GetInt("SERVER_PORT", 8888),
 			ShutdownTimeout: time.Duration(env.GetInt("SERVER_SHUTDOWN_TIMEOUT", 10)) * time.Second,
+			SessionName:     "sid",
+			SameSite:        http.SameSiteStrictMode,
+			SessionDuration: 30 * time.Minute,
+			CsrfName:        "xsrf",
 		},
 		DB: DBConfig{
 			Driver:             "pgx",

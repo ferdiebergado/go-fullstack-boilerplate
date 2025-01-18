@@ -46,17 +46,17 @@ func (r *repo) SignUpOAuth(ctx context.Context, provider string, id string) *sql
 }
 
 const singInQuery = `
-SELECT password_hash FROM users
+SELECT id, password_hash FROM users
 WHERE email = $1
 `
 
-func (r *repo) SignIn(ctx context.Context, email string) (*string, error) {
+func (r *repo) SignIn(ctx context.Context, email string) (*SignInResult, error) {
 	row := r.db.QueryRowContext(ctx, singInQuery, email)
 
-	var hash string
-	if err := row.Scan(&hash); err != nil {
+	var result SignInResult
+	if err := row.Scan(&result.ID, &result.Hash); err != nil {
 		return nil, err
 	}
 
-	return &hash, nil
+	return &result, nil
 }

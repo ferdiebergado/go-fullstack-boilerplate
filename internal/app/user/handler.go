@@ -4,29 +4,34 @@ import (
 	"errors"
 	"log/slog"
 	"net/http"
+	"time"
 
 	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/config"
 	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/errtypes"
 	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/http/html"
 	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/http/response"
+	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/http/session"
+	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/security"
 	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/validation"
 	"github.com/ferdiebergado/goexpress"
 	"github.com/ferdiebergado/gopherkit/http/request"
 )
 
 type Handler struct {
-	config       *config.Config
-	router       *goexpress.Router
-	service      AuthService
-	htmlTemplate *html.Template
+	config         *config.Config
+	router         *goexpress.Router
+	service        AuthService
+	htmlTemplate   *html.Template
+	sessionManager session.Manager
 }
 
-func NewHandler(cfg *config.Config, router *goexpress.Router, service AuthService, htmlTemplate *html.Template) *Handler {
+func NewHandler(cfg *config.Config, router *goexpress.Router, service AuthService, htmlTemplate *html.Template, sessMgr session.Manager) *Handler {
 	return &Handler{
-		config:       cfg,
-		router:       router,
-		service:      service,
-		htmlTemplate: htmlTemplate,
+		config:         cfg,
+		router:         router,
+		service:        service,
+		htmlTemplate:   htmlTemplate,
+		sessionManager: sessMgr,
 	}
 }
 
@@ -95,7 +100,7 @@ func (h *Handler) HandleSignInForm(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.service.SignIn(r.Context(), params)
+	userID, err := h.service.SignIn(r.Context(), params)
 
 	if err != nil {
 		var inputErr *validation.Error
@@ -120,6 +125,47 @@ func (h *Handler) HandleSignInForm(w http.ResponseWriter, r *http.Request) {
 	res := &response.APIResponse[any]{
 		Message: "Logged in.",
 	}
+
+	sid, err := security.GenerateRandomBytesEncoded(64)
+
+	if err != nil {
+		serverError := errtypes.ServerError(err)
+		response.RenderError(w, r, serverError)
+		return
+	}
+
+	err = h.sessionManager.Save(sid, userID)
+
+	if err != nil {
+		response.RenderError(w, r, errtypes.ServerError(err))
+		return
+	}
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     h.config.Server.SessionName,
+		Value:    sid,
+		Expires:  time.Now().Add(h.config.Server.SessionDuration),
+		HttpOnly: true,
+		SameSite: h.config.Server.SameSite,
+		Path:     "/",
+	})
+
+	csrf, err := security.GenerateRandomBytesEncoded(64)
+
+	if err != nil {
+		serverError := errtypes.ServerError(err)
+		response.RenderError(w, r, serverError)
+		return
+	}
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     h.config.Server.CsrfName,
+		Value:    csrf,
+		Expires:  time.Now().Add(h.config.Server.SessionDuration),
+		HttpOnly: false,
+		SameSite: h.config.Server.SameSite,
+		Path:     "/",
+	})
 
 	response.RenderJSON(w, http.StatusOK, res)
 }

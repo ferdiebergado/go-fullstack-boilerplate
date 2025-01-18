@@ -23,5 +23,5 @@ func GenerateRandomBytesEncoded(length uint32) (string, error) {
 		return "", err
 	}
 
-	return base64.StdEncoding.EncodeToString(key), nil
+	return base64.URLEncoding.EncodeToString(key), nil
 }

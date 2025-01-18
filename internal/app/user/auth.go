@@ -25,7 +25,12 @@ type OAuthParams struct {
 	OAuthID       string `json:"oauth_id"`
 }
 
+type SignInResult struct {
+	ID   string
+	Hash string
+}
+
 type Authenticator interface {
 	SignUp(context.Context, SignUpParams) (*User, error)
-	SignIn(context.Context, string) (*string, error)
+	SignIn(context.Context, string) (*SignInResult, error)
 }

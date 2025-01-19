@@ -46,7 +46,7 @@ func Run(ctx context.Context) error {
 
 	// Create the application
 	idleConnsClosed := make(chan struct{})
-	sessionManager := session.NewInMemorySession(cfg.Server.SessionDuration)
+	sessionManager := session.NewInMemorySession(cfg.Session.SessionDuration)
 	session, ok := sessionManager.(*session.InMemorySession)
 
 	if !ok {

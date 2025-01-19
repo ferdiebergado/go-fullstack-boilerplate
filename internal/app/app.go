@@ -32,7 +32,7 @@ func New(cfg *config.Config, conn *sql.DB, router *goexpress.Router, htmlTmpl *h
 func (a *App) registerGlobalMiddlewares() {
 	a.router.Use(goexpress.LogRequest)
 	a.router.Use(goexpress.StripTrailingSlashes)
-	a.router.Use(goexpress.Middleware(middleware.SessionMiddleware(a.cfg.Server, a.sessionManager)))
+	a.router.Use(goexpress.Middleware(middleware.SessionMiddleware(a.cfg.Session, a.sessionManager)))
 	a.router.Use(goexpress.RecoverFromPanic)
 }
 

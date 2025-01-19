@@ -80,7 +80,7 @@ func TestSessionMiddleware(t *testing.T) {
 			}
 
 			// Set up the middleware
-			cfg := config.HTTPServerConfig{
+			cfg := config.SessionConfig{
 				SessionName: "session",
 			}
 			middleware := middleware.SessionMiddleware(cfg, mockSessMgr)

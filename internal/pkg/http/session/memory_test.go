@@ -10,9 +10,8 @@ import (
 )
 
 func TestMemorySessionStore(t *testing.T) {
-	stopChan := make(chan struct{})
 	ttl := 2 * time.Second
-	store := session.NewMemorySessionStore(ttl, stopChan)
+	store := session.NewInMemorySession(ttl)
 
 	t.Run("Save and Retrieve Session", func(t *testing.T) {
 		if err := store.Save("key1", "value1"); err != nil {
@@ -75,15 +74,11 @@ func TestMemorySessionStore(t *testing.T) {
 			t.Errorf("expected error '%v', got '%v'", session.ErrSessionDoesNotExist, err)
 		}
 	})
-
-	close(stopChan)
 }
 
 func TestMemorySessionStoreConcurrentAccess(t *testing.T) {
-	stopChan := make(chan struct{})
-	store := session.NewMemorySessionStore(1*time.Second, stopChan)
-
 	var wg sync.WaitGroup
+	store := session.NewInMemorySession(1 * time.Second)
 	numGoroutines := 100
 
 	// Concurrently save sessions
@@ -126,5 +121,69 @@ func TestMemorySessionStoreConcurrentAccess(t *testing.T) {
 	}
 
 	wg.Wait()
+}
+
+func TestMemorySessionStore_StartCleanup(t *testing.T) {
+	var wg sync.WaitGroup
+	stopChan := make(chan struct{})
+	ttl := 1 * time.Second
+
+	// Create a new MemorySessionStore
+	wg.Add(1)
+	cleanupInterval := 500 * time.Millisecond
+	store := session.NewInMemorySession(ttl).(*session.InMemorySession)
+	store.StartCleanup(&wg, stopChan, cleanupInterval)
+
+	// Save a session
+	if err := store.Save("testKey", "testData"); err != nil {
+		t.Fatalf("unexpected error saving session: %v", err)
+	}
+
+	// Ensure the session is present
+	if _, err := store.Session("testKey"); err != nil {
+		t.Fatalf("unexpected error retrieving session: %v", err)
+	}
+
+	// Wait for TTL to expire
+	time.Sleep(2 * time.Second)
+
+	// Ensure the session is cleaned up after TTL
+	if _, err := store.Session("testKey"); !errors.Is(err, session.ErrSessionDoesNotExist) {
+		t.Fatalf("expected ErrSessionDoesNotExist, got: %v", err)
+	}
+
+	// Stop the cleanup process
 	close(stopChan)
+
+	// Wait for the cleanup goroutine to finish
+	wg.Wait()
+}
+
+func TestMemorySessionStore_StartCleanup_StopsOnSignal(t *testing.T) {
+	var wg sync.WaitGroup
+	stopChan := make(chan struct{})
+	ttl := 3 * time.Second
+	cleanupInterval := 500 * time.Millisecond
+
+	// Create a new MemorySessionStore
+	wg.Add(1)
+	store := session.NewInMemorySession(ttl).(*session.InMemorySession)
+	store.StartCleanup(&wg, stopChan, cleanupInterval)
+
+	// Save a session
+	if err := store.Save("testKey", "testData"); err != nil {
+		t.Fatalf("unexpected error saving session: %v", err)
+	}
+
+	// Stop the cleanup process
+	close(stopChan)
+
+	// Wait for the cleanup goroutine to finish
+	wg.Wait()
+
+	// Ensure the session is not cleaned up prematurely
+	time.Sleep(2 * time.Second)
+	if _, err := store.Session("testKey"); err != nil {
+		t.Fatalf("unexpected error retrieving session: %v", err)
+	}
 }

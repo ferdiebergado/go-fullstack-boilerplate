@@ -12,31 +12,27 @@ var (
 	ErrSessionExpired      = errors.New("session has expired")
 )
 
-type data struct {
+type session struct {
 	value     string
 	createdAt time.Time
 }
 
-type sessions map[string]data
+type sessions map[string]session
 
-type MemorySessionStore struct {
+type InMemorySession struct {
 	sessions sessions
-	mu       sync.RWMutex
 	ttl      time.Duration
-	stopChan <-chan struct{}
+	mu       sync.RWMutex
 }
 
-func NewMemorySessionStore(ttl time.Duration, stopChan <-chan struct{}) Manager {
-	store := &MemorySessionStore{
+func NewInMemorySession(ttl time.Duration) Manager {
+	return &InMemorySession{
 		sessions: make(sessions),
 		ttl:      ttl,
-		stopChan: stopChan,
 	}
-	store.StartCleanup(10 * time.Minute)
-	return store
 }
 
-func (s *MemorySessionStore) Save(sessionKey, sessionData string) error {
+func (s *InMemorySession) Save(sessionKey, sessionData string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -44,7 +40,7 @@ func (s *MemorySessionStore) Save(sessionKey, sessionData string) error {
 		return ErrSessionExists
 	}
 
-	s.sessions[sessionKey] = data{
+	s.sessions[sessionKey] = session{
 		value:     sessionData,
 		createdAt: time.Now(),
 	}
@@ -52,23 +48,23 @@ func (s *MemorySessionStore) Save(sessionKey, sessionData string) error {
 	return nil
 }
 
-func (s *MemorySessionStore) Session(sessionKey string) (string, error) {
+func (s *InMemorySession) Session(sessionKey string) (string, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	item, ok := s.sessions[sessionKey]
+	session, ok := s.sessions[sessionKey]
 	if !ok {
 		return "", ErrSessionDoesNotExist
 	}
 
-	if s.ttl > 0 && time.Since(item.createdAt) > s.ttl {
+	if s.ttl > 0 && time.Since(session.createdAt) > s.ttl {
 		return "", ErrSessionExpired
 	}
 
-	return item.value, nil
+	return session.value, nil
 }
 
-func (s *MemorySessionStore) Destroy(sessionKey string) error {
+func (s *InMemorySession) Destroy(sessionKey string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -80,18 +76,20 @@ func (s *MemorySessionStore) Destroy(sessionKey string) error {
 	return nil
 }
 
-func (s *MemorySessionStore) cleanUpExpiredSessions() {
+func (s *InMemorySession) cleanUpExpiredSessions() {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	for key, data := range s.sessions {
-		if s.ttl > 0 && time.Since(data.createdAt) > s.ttl {
+
+	for key, session := range s.sessions {
+		if s.ttl > 0 && time.Since(session.createdAt) > s.ttl {
 			delete(s.sessions, key)
 		}
 	}
 }
 
-func (s *MemorySessionStore) StartCleanup(interval time.Duration) {
+func (s *InMemorySession) StartCleanup(wg *sync.WaitGroup, stopChan <-chan struct{}, interval time.Duration) {
 	go func() {
+		defer wg.Done()
 		ticker := time.NewTicker(interval)
 		defer ticker.Stop()
 
@@ -99,7 +97,7 @@ func (s *MemorySessionStore) StartCleanup(interval time.Duration) {
 			select {
 			case <-ticker.C:
 				s.cleanUpExpiredSessions()
-			case <-s.stopChan:
+			case <-stopChan:
 				return
 			}
 		}

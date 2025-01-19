@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"errors"
 	"log/slog"
 	"os"
 	"os/signal"
@@ -10,7 +11,9 @@ import (
 
 	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/config"
 	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/db"
+	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/http/html"
 	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/http/server"
+	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/http/session"
 	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/logging"
 	"github.com/ferdiebergado/goexpress"
 )
@@ -32,7 +35,7 @@ func Run(ctx context.Context) error {
 
 	// WaitGroup to wait for all shutdown tasks to complete
 	var wg sync.WaitGroup
-	wg.Add(2) // Add 2 for database and server shutdown
+	wg.Add(3)
 
 	// Register OS Signal Listener
 	dbSignalCtx, dbCancel := signal.NotifyContext(ctx, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
@@ -41,19 +44,23 @@ func Run(ctx context.Context) error {
 	// Goroutine to handle database connection closure on signal
 	go db.WaitDisconnect(dbSignalCtx, &wg, conn)
 
-	// Create the router
-	router := goexpress.New()
-
 	// Create the application
-	stopChan := make(chan struct{})
-	application := New(cfg, conn, router, stopChan)
+	idleConnsClosed := make(chan struct{})
+	sessionManager := session.NewInMemorySession(cfg.Server.SessionDuration)
+	session, ok := sessionManager.(*session.InMemorySession)
+
+	if !ok {
+		return errors.New("sessionManager is not a session.InMemorySession")
+	}
+
+	session.StartCleanup(&wg, idleConnsClosed, cfg.Session.CleanUpInterval)
+	htmlTemplate := html.NewTemplate(&cfg.HTML)
+	router := goexpress.New()
+	application := New(cfg, conn, router, htmlTemplate, sessionManager)
 	application.SetupRouter()
 
 	// Start the httpServer
 	httpServer := server.New(&cfg.Server, router)
-
-	// Channel for server shutdown completion
-	idleConnsClosed := make(chan struct{})
 
 	// Goroutine to handle server shutdown on signal
 	go httpServer.WaitForShutdown(&wg, idleConnsClosed)
@@ -64,7 +71,6 @@ func Run(ctx context.Context) error {
 	// Block until both database and server shutdown are complete
 	<-idleConnsClosed // Wait for server to shut down
 	wg.Wait()         // Wait for all shutdown tasks (including database)
-	close(stopChan)
 	slog.Info("All shutdown tasks completed. Exiting.")
 
 	return nil

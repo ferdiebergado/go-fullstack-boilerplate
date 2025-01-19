@@ -148,9 +148,7 @@ func (h *Handler) HandleSignInForm(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.sessionManager.Save(sid, userID)
-
-	if err != nil {
+	if err := h.sessionManager.Save(sid, userID); err != nil {
 		response.RenderError(w, r, errtypes.ServerError(err))
 		return
 	}

@@ -11,7 +11,7 @@ import (
 
 func main() {
 	if err := app.Run(context.Background()); err != nil {
-		slog.Error("Fatal error occurred.", "reason", err, "severity", "Fatal")
+		slog.Error("Fatal error occurred.", "reason", err)
 		os.Exit(1)
 	}
 }

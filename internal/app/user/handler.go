@@ -142,11 +142,11 @@ func (h *Handler) HandleSignInForm(w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.SetCookie(w, &http.Cookie{
-		Name:     h.config.Server.SessionName,
+		Name:     h.config.Session.SessionName,
 		Value:    sid,
-		Expires:  time.Now().Add(h.config.Server.SessionDuration),
+		Expires:  time.Now().Add(h.config.Session.SessionDuration),
 		HttpOnly: true,
-		SameSite: h.config.Server.SameSite,
+		SameSite: h.config.Session.SameSite,
 		Path:     "/",
 	})
 
@@ -159,13 +159,17 @@ func (h *Handler) HandleSignInForm(w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.SetCookie(w, &http.Cookie{
-		Name:     h.config.Server.CsrfName,
+		Name:     h.config.Session.CSRFName,
 		Value:    csrf,
-		Expires:  time.Now().Add(h.config.Server.SessionDuration),
+		Expires:  time.Now().Add(h.config.Session.SessionDuration),
 		HttpOnly: false,
-		SameSite: h.config.Server.SameSite,
+		SameSite: h.config.Session.SameSite,
 		Path:     "/",
 	})
 
 	response.RenderJSON(w, http.StatusOK, res)
+}
+
+func (h *Handler) HandleProfile(w http.ResponseWriter, _ *http.Request) {
+	h.htmlTemplate.Render(w, "profile.html", nil)
 }

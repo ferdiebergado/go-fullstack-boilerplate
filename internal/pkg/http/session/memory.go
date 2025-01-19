@@ -76,6 +76,23 @@ func (s *InMemorySession) Destroy(sessionKey string) error {
 	return nil
 }
 
+// Flash retrieves flash messages and clears them after reading
+func (s *InMemorySession) Flash(sessionKey string) (string, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	// Retrieve flash messages
+	flash, ok := s.sessions[sessionKey]
+	if !ok {
+		return "", ErrSessionDoesNotExist
+	}
+
+	// Clear the flash messages after reading
+	delete(s.sessions, sessionKey)
+
+	return flash.value, nil
+}
+
 func (s *InMemorySession) cleanUpExpiredSessions() {
 	s.mu.Lock()
 	defer s.mu.Unlock()

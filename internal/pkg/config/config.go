@@ -8,9 +8,10 @@ import (
 )
 
 type Config struct {
-	Server HTTPServerConfig
-	DB     DBConfig
-	HTML   HTMLTemplateConfig
+	Server  HTTPServerConfig
+	DB      DBConfig
+	HTML    HTMLTemplateConfig
+	Session SessionConfig
 }
 
 type HTTPServerConfig struct {
@@ -44,16 +45,20 @@ type HTMLTemplateConfig struct {
 	PartialsDir string
 }
 
+type SessionConfig struct {
+	SessionName     string
+	SameSite        http.SameSite
+	SessionDuration time.Duration
+	CleanUpInterval time.Duration
+	CSRFName        string
+}
+
 func Load() *Config {
 	return &Config{
 		Server: HTTPServerConfig{
 			Addr:            env.Get("SERVER_HOST", "0.0.0.0"),
 			Port:            env.GetInt("SERVER_PORT", 8888),
 			ShutdownTimeout: time.Duration(env.GetInt("SERVER_SHUTDOWN_TIMEOUT", 10)) * time.Second,
-			SessionName:     "sid",
-			SameSite:        http.SameSiteStrictMode,
-			SessionDuration: 30 * time.Minute,
-			CsrfName:        "xsrf",
 		},
 		DB: DBConfig{
 			Driver:             "pgx",
@@ -73,6 +78,13 @@ func Load() *Config {
 			LayoutFile:  "layout.html",
 			PagesDir:    "pages",
 			PartialsDir: "partials",
+		},
+		Session: SessionConfig{
+			SessionName:     "sid",
+			SameSite:        http.SameSiteStrictMode,
+			SessionDuration: 30 * time.Minute,
+			CleanUpInterval: 10 * time.Minute,
+			CSRFName:        "xsrf",
 		},
 	}
 }

@@ -2,7 +2,6 @@ package app
 
 import (
 	"context"
-	"errors"
 	"log/slog"
 	"os"
 	"os/signal"
@@ -46,14 +45,7 @@ func Run(ctx context.Context) error {
 
 	// Create the application
 	idleConnsClosed := make(chan struct{})
-	sessionManager := session.NewInMemorySession(cfg.Session.SessionDuration)
-	session, ok := sessionManager.(*session.InMemorySession)
-
-	if !ok {
-		return errors.New("sessionManager is not a session.InMemorySession")
-	}
-
-	session.StartCleanup(&wg, idleConnsClosed, cfg.Session.CleanUpInterval)
+	sessionManager := session.NewDatabaseSession(cfg.Session, conn)
 	htmlTemplate := html.NewTemplate(&cfg.HTML)
 	router := goexpress.New()
 	application := New(cfg, conn, router, htmlTemplate, sessionManager)

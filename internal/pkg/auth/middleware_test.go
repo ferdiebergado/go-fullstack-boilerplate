@@ -1,56 +1,58 @@
 package auth_test
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"testing"
-	"time"
 
 	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/auth"
 	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/config"
+	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/db"
 	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/http/session"
 )
 
 type MockSessionManager struct {
-	SessionFunc       func(sessionID string) (string, error)
-	SaveFunc          func(sessionKey, sessionData string) error
-	DeleteSessionFunc func(sessionKey string) error
+	FetchFunc         func(*http.Request) (*session.Data, error)
+	SaveFunc          func(context.Context, string, session.Data) error
+	DeleteSessionFunc func(*http.Request) error
+	SessionIDFunc     func(*http.Request) (string, error)
 }
 
-func (m *MockSessionManager) Save(sessionKey, sessionData string) error {
+func (m *MockSessionManager) Save(ctx context.Context, sessionID string, sessionData session.Data) error {
 	if m.SaveFunc != nil {
-		return m.SaveFunc(sessionKey, sessionData)
+		return m.SaveFunc(ctx, sessionID, sessionData)
 	}
 	return nil
 }
 
-func (m *MockSessionManager) Session(sessionID string) (string, error) {
-	if m.SessionFunc != nil {
-		return m.SessionFunc(sessionID)
+func (m *MockSessionManager) Fetch(r *http.Request) (*session.Data, error) {
+	if m.FetchFunc != nil {
+		return m.FetchFunc(r)
 	}
-	return "", nil
+	return &session.Data{}, nil
 }
 
-func (m *MockSessionManager) Flash(sessionID string) (string, error) {
-	if m.SessionFunc != nil {
-		return m.SessionFunc(sessionID)
-	}
-	return "", nil
-}
-
-func (m *MockSessionManager) Destroy(sessionKey string) error {
+func (m *MockSessionManager) Destroy(r *http.Request) error {
 	if m.DeleteSessionFunc != nil {
-		return m.DeleteSessionFunc(sessionKey)
+		return m.DeleteSessionFunc(r)
 	}
 	return nil
+}
+
+func (m *MockSessionManager) SessionID(r *http.Request) (string, error) {
+	if m.SessionIDFunc != nil {
+		return m.SessionIDFunc(r)
+	}
+	return "", nil
 }
 
 func TestSessionMiddleware(t *testing.T) {
 	tests := []struct {
 		name           string
 		sessionCookie  *http.Cookie
-		sessionManager func(string) (string, error)
+		sessionManager func(*http.Request) (*session.Data, error)
 		expectedUserID string
 		expectedStatus int
 		wantErr        bool
@@ -66,7 +68,7 @@ func TestSessionMiddleware(t *testing.T) {
 		{
 			name:           "Invalid session cookie",
 			sessionCookie:  &http.Cookie{Name: "session", Value: "invalid_session"},
-			sessionManager: func(sessionID string) (string, error) { return "", nil },
+			sessionManager: func(r *http.Request) (*session.Data, error) { return &session.Data{}, nil },
 			expectedUserID: "",
 			expectedStatus: http.StatusOK,
 			wantErr:        false,
@@ -74,7 +76,7 @@ func TestSessionMiddleware(t *testing.T) {
 		{
 			name:           "Valid session cookie",
 			sessionCookie:  &http.Cookie{Name: "session", Value: "valid_session"},
-			sessionManager: func(sessionID string) (string, error) { return "12345", nil },
+			sessionManager: func(r *http.Request) (*session.Data, error) { return &session.Data{UserID: "12345"}, nil },
 			expectedUserID: "12345",
 			expectedStatus: http.StatusOK,
 			wantErr:        false,
@@ -85,7 +87,7 @@ func TestSessionMiddleware(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			// Create a mock session manager with the provided function
 			mockSessMgr := &MockSessionManager{
-				SessionFunc: tt.sessionManager,
+				FetchFunc: tt.sessionManager,
 			}
 
 			// Set up the middleware
@@ -150,6 +152,14 @@ func TestAuthMiddleware(t *testing.T) {
 		w.Write([]byte("success"))
 	})
 
+	cfg := config.Load()
+
+	conn, err := db.Connect(context.Background(), cfg.DB)
+
+	if err != nil {
+		t.Fatal("failed to connect to the database")
+	}
+
 	tests := []struct {
 		name           string
 		withUser       bool   // Whether to include user in context
@@ -205,7 +215,7 @@ func TestAuthMiddleware(t *testing.T) {
 			rr := httptest.NewRecorder()
 
 			// Wrap the handler with AuthMiddleware and serve the request
-			sessMgr := session.NewInMemorySession(1 * time.Minute)
+			sessMgr := session.NewDatabaseSession(cfg.Session, conn)
 			handler := auth.RequireUserMiddleware(sessMgr)(mockHandler)
 			handler.ServeHTTP(rr, req)
 

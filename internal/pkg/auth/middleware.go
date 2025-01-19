@@ -15,25 +15,17 @@ const redirectPath = "/signin"
 func SessionMiddleware(cfg config.SessionConfig, sessMgr session.Manager) middleware.Middleware {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			session, err := r.Cookie(cfg.SessionName)
+			sessionData, err := sessMgr.Fetch(r)
 
 			if err != nil {
-				slog.Debug("No session cookie")
+				slog.Debug("No data for session")
 				next.ServeHTTP(w, r)
 				return
 			}
 
-			userID, err := sessMgr.Session(session.Value)
+			slog.Debug("Session", "data", sessionData, "user_id", sessionData.UserID)
 
-			if err != nil {
-				slog.Debug("No user from session")
-				next.ServeHTTP(w, r)
-				return
-			}
-
-			slog.Debug("Session", "session", session, "user_id", userID)
-
-			ctx := WithUser(r.Context(), userID)
+			ctx := WithUser(r.Context(), sessionData.UserID)
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}
@@ -60,10 +52,23 @@ func RequireUserMiddleware(sessMgr session.Manager) middleware.Middleware {
 					return
 				}
 
-				if err := sessMgr.Save("intended_url", r.URL.Path); err != nil {
-					slog.Info("cannot save url to the session")
-					next.ServeHTTP(w, r)
-					return
+				sessionData, err := sessMgr.Fetch(r)
+
+				if err != nil {
+					slog.Error("no session data")
+				} else {
+					sessionData.Flash = map[string]string{
+						"intendedUrl": r.URL.Path,
+					}
+
+					sessionID, err := sessMgr.SessionID(r)
+
+					if err != nil {
+						http.Error(w, err.Error(), http.StatusInternalServerError)
+						return
+					}
+
+					sessMgr.Save(r.Context(), sessionID, *sessionData)
 				}
 
 				http.Redirect(w, r, redirectPath, http.StatusSeeOther)

@@ -7,8 +7,8 @@ import (
 type AuthMethod string
 
 const (
-	Basic AuthMethod = "email/password"
-	OAuth AuthMethod = "oauth"
+	BasicAuth AuthMethod = "email/password"
+	OAuth     AuthMethod = "oauth"
 )
 
 type User struct {

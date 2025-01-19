@@ -28,7 +28,7 @@ RETURNING id, email, auth_method, created_at, updated_at
 `
 
 func (r *repo) SignUp(ctx context.Context, params SignUpParams) (*user.User, error) {
-	row := r.db.QueryRowContext(ctx, signUpQuery, params.Email, params.Password, user.Basic)
+	row := r.db.QueryRowContext(ctx, signUpQuery, params.Email, params.Password, user.BasicAuth)
 
 	var user user.User
 	if err := row.Scan(&user.ID, &user.Email, &user.AuthMethod, &user.CreatedAt, &user.UpdatedAt); err != nil {

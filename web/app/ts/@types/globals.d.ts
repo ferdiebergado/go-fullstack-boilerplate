@@ -22,3 +22,7 @@ type ButtonAttrs = {
 	text: string;
 	loadingText: string;
 };
+
+type RedirectData = {
+	redirectUrl: string;
+};

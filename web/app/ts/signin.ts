@@ -79,11 +79,15 @@ async function signInUser(e: SubmitEvent) {
 			errors && handleFormErrors(errors, frmSignin);
 			showNotification("error", message);
 		} else {
-			const { message, data }: APIResponse<undefined> = await res.json();
-
+			const { message, data }: APIResponse<RedirectData> =
+				await res.json();
 			console.log("message", message, "data", data);
 
 			showNotification("success", message);
+
+			if (data) {
+				window.location.href = data.redirectUrl;
+			}
 		}
 	} catch (error) {
 		console.log("Error during sign-in process:", error);

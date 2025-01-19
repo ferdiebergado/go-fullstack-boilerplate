@@ -1,9 +1,10 @@
-package user
+package auth
 
 import (
 	"context"
 	"database/sql"
 
+	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/app/user"
 	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/config"
 	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/db"
 )
@@ -26,10 +27,10 @@ VALUES ($1, $2, $3)
 RETURNING id, email, auth_method, created_at, updated_at
 `
 
-func (r *repo) SignUp(ctx context.Context, params SignUpParams) (*User, error) {
-	row := r.db.QueryRowContext(ctx, signUpQuery, params.Email, params.Password, Basic)
+func (r *repo) SignUp(ctx context.Context, params SignUpParams) (*user.User, error) {
+	row := r.db.QueryRowContext(ctx, signUpQuery, params.Email, params.Password, user.Basic)
 
-	var user User
+	var user user.User
 	if err := row.Scan(&user.ID, &user.Email, &user.AuthMethod, &user.CreatedAt, &user.UpdatedAt); err != nil {
 		if db.IsUniqueViolation(err) {
 			return nil, &EmailExistsError{Email: params.Email}
@@ -42,7 +43,7 @@ func (r *repo) SignUp(ctx context.Context, params SignUpParams) (*User, error) {
 
 func (r *repo) SignUpOAuth(ctx context.Context, provider string, id string) *sql.Row {
 	const q = "INSERT INTO users (oauth_provider, oauth_id, auth_method) VALUES ($1, $2, $3) RETURNING id, email, auth_method, created_at, updated_at"
-	return r.db.QueryRowContext(ctx, q, provider, id, OAuth)
+	return r.db.QueryRowContext(ctx, q, provider, id, user.OAuth)
 }
 
 const singInQuery = `

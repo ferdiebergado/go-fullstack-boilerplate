@@ -1,4 +1,4 @@
-package user
+package auth
 
 import (
 	"context"
@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log/slog"
 
+	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/app/user"
 	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/config"
 	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/security"
 	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/validation"
@@ -17,12 +18,12 @@ type service struct {
 	cfg           *config.Config
 }
 
-type AuthService interface {
-	SignUp(context.Context, SignUpParams) (*User, error)
+type Service interface {
+	SignUp(context.Context, SignUpParams) (*user.User, error)
 	SignIn(context.Context, SignInParams) (string, error)
 }
 
-func NewAuthService(cfg *config.Config, authenticator Authenticator) AuthService {
+func NewAuthService(cfg *config.Config, authenticator Authenticator) Service {
 	return &service{
 		authenticator: authenticator,
 		cfg:           cfg,
@@ -33,7 +34,7 @@ var ErrEmailExists = errors.New("duplicate email")
 var ErrUserPassInvalid = errors.New("invalid username or password")
 
 // Signs up a user using email and password
-func (s *service) SignUp(ctx context.Context, params SignUpParams) (*User, error) {
+func (s *service) SignUp(ctx context.Context, params SignUpParams) (*user.User, error) {
 	form := validation.NewForm(params)
 	form.Required("Email", "Password", "PasswordConfirmation")
 	form.PasswordsMatch("Password", "PasswordConfirmation")

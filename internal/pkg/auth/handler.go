@@ -1,4 +1,4 @@
-package user
+package auth
 
 import (
 	"errors"
@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/app/user"
 	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/config"
 	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/errtypes"
 	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/http/html"
@@ -20,12 +21,12 @@ import (
 type Handler struct {
 	config         *config.Config
 	router         *goexpress.Router
-	service        AuthService
+	service        Service
 	htmlTemplate   *html.Template
 	sessionManager session.Manager
 }
 
-func NewHandler(cfg *config.Config, router *goexpress.Router, service AuthService, htmlTemplate *html.Template, sessMgr session.Manager) *Handler {
+func NewHandler(cfg *config.Config, router *goexpress.Router, service Service, htmlTemplate *html.Template, sessMgr session.Manager) *Handler {
 	return &Handler{
 		config:         cfg,
 		router:         router,
@@ -47,7 +48,7 @@ func (h *Handler) HandleSignUpForm(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := h.service.SignUp(r.Context(), params)
+	u, err := h.service.SignUp(r.Context(), params)
 
 	if err != nil {
 		var inputErr *validation.Error
@@ -78,9 +79,9 @@ func (h *Handler) HandleSignUpForm(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res := &response.APIResponse[User]{
+	res := &response.APIResponse[user.User]{
 		Message: "Sign up successful!",
-		Data:    user,
+		Data:    u,
 	}
 
 	slog.Debug("sending response", "message", res.Message, "data", res.Data)
@@ -122,8 +123,21 @@ func (h *Handler) HandleSignInForm(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res := &response.APIResponse[any]{
+	var redirectURL string
+
+	url, err := h.sessionManager.Flash("intended_url")
+
+	if err != nil {
+		redirectURL = "/dashboard"
+	} else {
+		redirectURL = url
+	}
+
+	res := &response.APIResponse[map[string]string]{
 		Message: "Logged in.",
+		Data: &map[string]string{
+			"redirectUrl": redirectURL,
+		},
 	}
 
 	sid, err := security.GenerateRandomBytesEncoded(64)

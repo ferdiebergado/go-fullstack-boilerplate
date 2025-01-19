@@ -4,6 +4,13 @@ import (
 	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/db"
 )
 
+type AuthMethod string
+
+const (
+	Basic AuthMethod = "email/password"
+	OAuth AuthMethod = "oauth"
+)
+
 type User struct {
 	db.Model
 	Email         string     `json:"email"`

@@ -1,12 +1,9 @@
-package user
+package auth
 
-import "context"
+import (
+	"context"
 
-type AuthMethod string
-
-const (
-	Basic AuthMethod = "email/password"
-	OAuth AuthMethod = "oauth"
+	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/app/user"
 )
 
 type SignUpParams struct {
@@ -31,6 +28,6 @@ type SignInResult struct {
 }
 
 type Authenticator interface {
-	SignUp(context.Context, SignUpParams) (*User, error)
+	SignUp(context.Context, SignUpParams) (*user.User, error)
 	SignIn(context.Context, string) (*SignInResult, error)
 }

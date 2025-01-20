@@ -125,7 +125,7 @@ func (h *Handler) HandleSignInForm(w http.ResponseWriter, r *http.Request) {
 
 	var redirectURL string
 
-	sessionData, err := h.sessionManager.Fetch(r)
+	sessionData, err := h.sessionManager.LoadSession(r)
 
 	if err != nil {
 		redirectURL = "/dashboard"
@@ -152,7 +152,7 @@ func (h *Handler) HandleSignInForm(w http.ResponseWriter, r *http.Request) {
 		UserID: userID,
 	}
 
-	if err := h.sessionManager.Save(r.Context(), sid, data); err != nil {
+	if err := h.sessionManager.StoreSession(r.Context(), sid, data); err != nil {
 		response.RenderError(w, r, errtypes.ServerError(err))
 		return
 	}

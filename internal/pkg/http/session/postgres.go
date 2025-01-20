@@ -19,6 +19,8 @@ type DatabaseSession struct {
 	store *sql.DB
 }
 
+var _ Manager = (*DatabaseSession)(nil)
+
 func NewDatabaseSession(cfg config.SessionConfig, db *sql.DB) Manager {
 	gob.Register(Data{})
 
@@ -28,7 +30,7 @@ func NewDatabaseSession(cfg config.SessionConfig, db *sql.DB) Manager {
 	}
 }
 
-func (d *DatabaseSession) Save(ctx context.Context, sessionID string, sessionData Data) error {
+func (d *DatabaseSession) StoreSession(ctx context.Context, sessionID string, sessionData Data) error {
 	var buf bytes.Buffer
 	if err := gob.NewEncoder(&buf).Encode(sessionData); err != nil {
 		return fmt.Errorf("encode session data: %w", err)
@@ -49,8 +51,8 @@ func (d *DatabaseSession) Save(ctx context.Context, sessionID string, sessionDat
 	return nil
 }
 
-func (d *DatabaseSession) Fetch(r *http.Request) (*Data, error) {
-	sessionID, err := d.SessionID(r)
+func (d *DatabaseSession) LoadSession(r *http.Request) (*Data, error) {
+	sessionID, err := d.ExtractSessionID(r)
 
 	if err != nil {
 		return nil, err
@@ -75,8 +77,8 @@ func (d *DatabaseSession) Fetch(r *http.Request) (*Data, error) {
 	return &data, nil
 }
 
-func (d *DatabaseSession) Destroy(r *http.Request) error {
-	sessionID, err := d.SessionID(r)
+func (d *DatabaseSession) DestroySession(r *http.Request) error {
+	sessionID, err := d.ExtractSessionID(r)
 
 	if err != nil {
 		return err
@@ -89,7 +91,7 @@ func (d *DatabaseSession) Destroy(r *http.Request) error {
 	return nil
 }
 
-func (d *DatabaseSession) SessionID(r *http.Request) (string, error) {
+func (d *DatabaseSession) ExtractSessionID(r *http.Request) (string, error) {
 	session, err := r.Cookie(d.cfg.SessionName)
 	var sessionID string
 	if err != nil {

@@ -12,14 +12,14 @@ type Data struct {
 
 type Manager interface {
 	// Saves a session.
-	Save(context.Context, string, Data) error
+	StoreSession(context.Context, string, Data) error
 
-	// Retrieves the session data from the request.
-	Fetch(*http.Request) (*Data, error)
+	// Loads the session data from the request.
+	LoadSession(*http.Request) (*Data, error)
 
-	// Retrieves the session id from the request.
-	SessionID(*http.Request) (string, error)
+	// Extracts the session id from the request.
+	ExtractSessionID(*http.Request) (string, error)
 
-	// Deletes the session data from the request.
-	Destroy(*http.Request) error
+	// Deletes the session from the request.
+	DestroySession(*http.Request) error
 }

@@ -15,7 +15,7 @@ const redirectPath = "/signin"
 func SessionMiddleware(cfg config.SessionConfig, sessMgr session.Manager) middleware.Middleware {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			sessionData, err := sessMgr.Fetch(r)
+			sessionData, err := sessMgr.LoadSession(r)
 
 			if err != nil {
 				slog.Debug("No data for session")
@@ -52,7 +52,7 @@ func RequireUserMiddleware(sessMgr session.Manager) middleware.Middleware {
 					return
 				}
 
-				sessionData, err := sessMgr.Fetch(r)
+				sessionData, err := sessMgr.LoadSession(r)
 
 				if err != nil {
 					slog.Error("no session data")
@@ -61,14 +61,17 @@ func RequireUserMiddleware(sessMgr session.Manager) middleware.Middleware {
 						"intendedUrl": r.URL.Path,
 					}
 
-					sessionID, err := sessMgr.SessionID(r)
+					sessionID, err := sessMgr.ExtractSessionID(r)
 
 					if err != nil {
 						http.Error(w, err.Error(), http.StatusInternalServerError)
 						return
 					}
 
-					sessMgr.Save(r.Context(), sessionID, *sessionData)
+					if err := sessMgr.StoreSession(r.Context(), sessionID, *sessionData); err != nil {
+						http.Error(w, err.Error(), http.StatusInternalServerError)
+						return
+					}
 				}
 
 				http.Redirect(w, r, redirectPath, http.StatusSeeOther)

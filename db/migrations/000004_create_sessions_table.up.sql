@@ -1,12 +1,12 @@
-CREATE TABLE user_sessions (
-    session_id BYTEA PRIMARY KEY, -- session ID
+CREATE TABLE sessions (
+    id BYTEA PRIMARY KEY, -- session ID
     user_id UUID REFERENCES users(id) ON DELETE CASCADE, -- Foreign key with ON DELETE CASCADE
     ip_address INET,                   -- PostgreSQL's INET type for IP addresses
     user_agent TEXT,
     login_time TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP, -- Timestamp with timezone
     last_activity TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     expiry_time TIMESTAMPTZ,           -- Optional expiry time
-    session_data JSONB                 -- PostgreSQL's JSONB for efficient JSON storage and querying
+    data JSONB                 -- PostgreSQL's JSONB for efficient JSON storage and querying
 );
 
 CREATE INDEX idx_user_sessions_user_id ON user_sessions (user_id);

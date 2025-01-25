@@ -44,10 +44,12 @@ func Run(ctx context.Context) error {
 	go db.WaitDisconnect(dbSignalCtx, &wg, database)
 
 	// Create the application
-	sessionManager := session.NewDatabaseSession(cfg.Session, database)
+	sessionStore := session.NewPostgresStore(cfg.Session, database)
+	sessionMgr := session.NewManager(cfg.Session)
+	sessionMgr.UseStore(sessionStore)
 	htmlTemplate := html.NewTemplate(&cfg.HTML)
 	router := goexpress.New()
-	application := New(cfg, database, router, htmlTemplate, sessionManager)
+	application := New(cfg, database, router, htmlTemplate, sessionMgr)
 	application.SetupRouter()
 
 	// Start the httpServer

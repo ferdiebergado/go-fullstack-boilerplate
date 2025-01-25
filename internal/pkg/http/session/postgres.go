@@ -1,108 +1,115 @@
 package session
 
 import (
-	"bytes"
 	"context"
 	"database/sql"
-	"encoding/gob"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
 	"time"
 
 	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/config"
+	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/http/request"
 	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/security"
 )
 
-type DatabaseSession struct {
-	cfg   config.SessionConfig
-	store *sql.DB
+// postgresStore implements the Store interface using PostgreSQL.
+type postgresStore struct {
+	cfg config.SessionConfig
+	db  *sql.DB
 }
 
-var _ Manager = (*DatabaseSession)(nil)
-
-func NewDatabaseSession(cfg config.SessionConfig, database *sql.DB) Manager {
-	gob.Register(Data{})
-
-	return &DatabaseSession{
-		cfg:   cfg,
-		store: database,
+// NewPostgresStore creates a new PostgresStore.
+func NewPostgresStore(cfg config.SessionConfig, db *sql.DB) Store {
+	return &postgresStore{
+		cfg: cfg,
+		db:  db,
 	}
 }
 
-func (d *DatabaseSession) StoreSession(ctx context.Context, sessionID string, sessionData Data) error {
-	var buf bytes.Buffer
-	if err := gob.NewEncoder(&buf).Encode(sessionData); err != nil {
-		return fmt.Errorf("encode session data: %w", err)
-	}
-
-	expiryTime := time.Now().Add(d.cfg.SessionDuration)
-
-	_, err := d.store.ExecContext(ctx,
-		`INSERT INTO user_sessions (session_id, session_data, last_activity, expiry_time)
-                VALUES ($1, $2, NOW(), $3)
-                ON CONFLICT (session_id) DO UPDATE SET session_data = $2, last_activity = NOW(), expiry_time = $3`,
-		sessionID, buf.Bytes(), expiryTime)
-
-	if err != nil {
-		return fmt.Errorf("save session data: %w", err)
-	}
-
-	return nil
-}
-
-func (d *DatabaseSession) LoadSession(r *http.Request) (*Data, error) {
-	sessionID, err := d.ExtractSessionID(r)
+func (s *postgresStore) Create(r *http.Request) (Session, error) {
+	id, err := security.GenerateRandomBytes(64)
 
 	if err != nil {
 		return nil, err
 	}
 
-	var sessionData []byte
-	err = d.store.QueryRowContext(r.Context(), "SELECT session_data FROM user_sessions WHERE session_id = $1", sessionID).Scan(&sessionData)
+	sess := &sessionData{
+		id:        id,
+		data:      make(map[string]interface{}),
+		store:     s,
+		expiry:    time.Now().Add(s.cfg.SessionDuration),
+		ipAddress: request.GetIPAddress(r),
+		userAgent: r.UserAgent(),
+	}
 
+	if err := s.Save(r.Context(), sess); err != nil {
+		return nil, fmt.Errorf("failed to save new session: %w", err)
+	}
+
+	return sess, nil
+}
+
+func (s *postgresStore) Get(ctx context.Context, id []byte) (Session, error) {
+	var data []byte
+	var expiry time.Time
+	err := s.db.QueryRowContext(ctx, "SELECT data, expiry FROM sessions WHERE id = $1", id).Scan(&data, &expiry)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, nil
+			return nil, nil // Session not found
 		}
-		return nil, fmt.Errorf("get session data: %w", err)
+		return nil, fmt.Errorf("failed to get session: %w", err)
 	}
 
-	var data Data
-	err = gob.NewDecoder(bytes.NewReader(sessionData)).Decode(&data)
-	if err != nil {
-		return nil, fmt.Errorf("decode session data: %w", err)
+	if expiry.Before(time.Now()) {
+		if err := s.Delete(ctx, id); err != nil {
+			return nil, err
+		}
+		//cleanup expired session
+		return nil, nil
 	}
 
-	return &data, nil
-}
-
-func (d *DatabaseSession) DestroySession(r *http.Request) error {
-	sessionID, err := d.ExtractSessionID(r)
-
-	if err != nil {
-		return err
+	sess := &sessionData{
+		id:     id,
+		store:  s,
+		expiry: expiry,
 	}
 
-	_, err = d.store.ExecContext(r.Context(), "DELETE FROM user_sessions WHERE session_id = $1", sessionID)
-	if err != nil {
-		return fmt.Errorf("delete session: %w", err)
-	}
-	return nil
-}
-
-func (d *DatabaseSession) ExtractSessionID(r *http.Request) (string, error) {
-	session, err := r.Cookie(d.cfg.SessionName)
-	var sessionID string
-	if err != nil {
-		sessionID, err = security.GenerateRandomBytesEncoded(64)
-
-		if err != nil {
-			return "", fmt.Errorf("generate session id: %w", err)
+	if len(data) > 0 {
+		if err := json.Unmarshal(data, &sess.data); err != nil {
+			return nil, fmt.Errorf("failed to decode session data: %w", err)
 		}
 	} else {
-		sessionID = session.Value
+		sess.data = make(map[string]interface{})
 	}
 
-	return sessionID, nil
+	return sess, nil
+}
+
+func (s *postgresStore) Save(ctx context.Context, sess Session) error {
+	sessData, ok := sess.(*sessionData)
+
+	if !ok {
+		return fmt.Errorf("failed to type assert session to sessionData: %v", sess)
+	}
+
+	data, err := json.Marshal(sessData.data)
+	if err != nil {
+		return fmt.Errorf("failed to encode session data: %w", err)
+	}
+
+	_, err = s.db.ExecContext(ctx, "INSERT INTO sessions (id, user_id, ip_address, user_agent, data, expiry) VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT (id) DO UPDATE SET data = $5, expiry = $6, last_activity = NOW()", sess.ID(), sessData.userID, sessData.ipAddress, sessData.userAgent, data, sess.Expiry())
+
+	return err
+}
+
+func (s *postgresStore) Delete(ctx context.Context, id []byte) error {
+	_, err := s.db.ExecContext(ctx, "DELETE FROM sessions WHERE id = $1", id)
+	return err
+}
+
+func (s *postgresStore) Cleanup(ctx context.Context) error {
+	_, err := s.db.ExecContext(ctx, "DELETE FROM sessions WHERE expiry < NOW()")
+	return err
 }

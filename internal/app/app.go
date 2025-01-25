@@ -18,10 +18,10 @@ type App struct {
 	sessionManager session.Manager
 }
 
-func New(cfg *config.Config, conn *sql.DB, router *goexpress.Router, htmlTmpl *html.Template, sessMgr session.Manager) *App {
+func New(cfg *config.Config, database *sql.DB, router *goexpress.Router, htmlTmpl *html.Template, sessMgr session.Manager) *App {
 	return &App{
 		cfg:            cfg,
-		db:             conn,
+		db:             database,
 		router:         router,
 		htmlTemplate:   htmlTmpl,
 		sessionManager: sessMgr,
@@ -36,8 +36,7 @@ func (a *App) registerGlobalMiddlewares() {
 }
 
 func (a *App) AddBaseHandler() *BaseHandler {
-	repo := NewRepo(a.db, &a.cfg.DB)
-	service := NewService(repo, a.cfg)
+	service := NewService(a.cfg)
 	return NewHandler(a.router, service, a.cfg, a.htmlTemplate)
 }
 

@@ -1,7 +1,6 @@
 package app
 
 import (
-	"context"
 	"database/sql"
 	"runtime"
 
@@ -9,21 +8,17 @@ import (
 )
 
 type service struct {
-	repo Repo
-	cfg  *config.Config
+	cfg *config.Config
 }
 
 type Service interface {
-	DBStats(context.Context) (*DBHealth, error)
 	CPUStats() *CPUHealth
 	MemStats() *RAMHealth
-	PingDB(context.Context) error
 }
 
-func NewService(repo Repo, cfg *config.Config) Service {
+func NewService(cfg *config.Config) Service {
 	return &service{
-		repo: repo,
-		cfg:  cfg,
+		cfg: cfg,
 	}
 }
 
@@ -55,31 +50,6 @@ type DBStats struct {
 type DBHealth struct {
 	Status string   `json:"status"`
 	Stats  *DBStats `json:"stats,omitempty"`
-}
-
-func (s *service) DBStats(ctx context.Context) (*DBHealth, error) {
-	if err := s.PingDB(ctx); err != nil {
-		return &DBHealth{
-			Status: "down",
-		}, err
-	}
-
-	dbstats := &DBStats{
-		Stats:  s.repo.Stats(),
-		Driver: s.cfg.DB.Driver,
-		DB:     s.cfg.DB.DB,
-		Host:   s.cfg.DB.Host,
-		Port:   s.cfg.DB.Port,
-	}
-
-	return &DBHealth{
-		Status: "up",
-		Stats:  dbstats,
-	}, nil
-}
-
-func (s *service) PingDB(ctx context.Context) error {
-	return s.repo.Ping(ctx)
 }
 
 type CPUHealth struct {

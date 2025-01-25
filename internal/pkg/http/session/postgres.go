@@ -21,12 +21,12 @@ type DatabaseSession struct {
 
 var _ Manager = (*DatabaseSession)(nil)
 
-func NewDatabaseSession(cfg config.SessionConfig, db *sql.DB) Manager {
+func NewDatabaseSession(cfg config.SessionConfig, database *sql.DB) Manager {
 	gob.Register(Data{})
 
 	return &DatabaseSession{
 		cfg:   cfg,
-		store: db,
+		store: database,
 	}
 }
 

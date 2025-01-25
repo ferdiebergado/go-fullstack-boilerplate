@@ -44,7 +44,7 @@ func (s *Server) Start() {
 }
 
 // Handle server shutdown on signal
-func (s *Server) WaitForShutdown(wg *sync.WaitGroup, idleConnsClosed chan struct{}) {
+func (s *Server) WaitForShutdown(wg *sync.WaitGroup) {
 	defer wg.Done()
 	sigint := make(chan os.Signal, 1)
 	signal.Notify(sigint, syscall.SIGINT, syscall.SIGTERM)
@@ -58,6 +58,4 @@ func (s *Server) WaitForShutdown(wg *sync.WaitGroup, idleConnsClosed chan struct
 	if err := s.server.Shutdown(ctx); err != nil {
 		slog.Error("HTTP server Shutdown error", "error", err)
 	}
-
-	close(idleConnsClosed)
 }

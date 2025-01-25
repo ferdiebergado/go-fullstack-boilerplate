@@ -14,21 +14,21 @@ type repo struct {
 	db  *sql.DB
 }
 
-func NewAuthRepo(cfg *config.DBConfig, conn *sql.DB) Authenticator {
+func NewAuthRepo(cfg *config.DBConfig, database *sql.DB) Authenticator {
 	return &repo{
 		cfg: cfg,
-		db:  conn,
+		db:  database,
 	}
 }
 
-const signUpQuery = `
+const SignUpQuery = `
 INSERT INTO users (email, password_hash, auth_method)
 VALUES ($1, $2, $3)
 RETURNING id, email, auth_method, created_at, updated_at
 `
 
 func (r *repo) SignUp(ctx context.Context, params SignUpParams) (*user.User, error) {
-	row := r.db.QueryRowContext(ctx, signUpQuery, params.Email, params.Password, user.BasicAuth)
+	row := r.db.QueryRowContext(ctx, SignUpQuery, params.Email, params.Password, user.BasicAuth)
 
 	var user user.User
 	if err := row.Scan(&user.ID, &user.Email, &user.AuthMethod, &user.CreatedAt, &user.UpdatedAt); err != nil {
@@ -41,18 +41,23 @@ func (r *repo) SignUp(ctx context.Context, params SignUpParams) (*user.User, err
 	return &user, nil
 }
 
+const OauthSignUpQuery = `
+INSERT INTO users (oauth_provider, oauth_id, auth_method)
+VALUES ($1, $2, $3)
+RETURNING id, email, auth_method, created_at, updated_at
+`
+
 func (r *repo) SignUpOAuth(ctx context.Context, provider string, id string) *sql.Row {
-	const q = "INSERT INTO users (oauth_provider, oauth_id, auth_method) VALUES ($1, $2, $3) RETURNING id, email, auth_method, created_at, updated_at"
-	return r.db.QueryRowContext(ctx, q, provider, id, user.OAuth)
+	return r.db.QueryRowContext(ctx, OauthSignUpQuery, provider, id, user.OAuth)
 }
 
-const singInQuery = `
+const SignInQuery = `
 SELECT id, password_hash FROM users
 WHERE email = $1
 `
 
 func (r *repo) SignIn(ctx context.Context, email string) (*SignInResult, error) {
-	row := r.db.QueryRowContext(ctx, singInQuery, email)
+	row := r.db.QueryRowContext(ctx, SignInQuery, email)
 
 	var result SignInResult
 	if err := row.Scan(&result.ID, &result.Hash); err != nil {

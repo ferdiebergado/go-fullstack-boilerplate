@@ -3,6 +3,7 @@ module github.com/ferdiebergado/go-fullstack-boilerplate
 go 1.22.9
 
 require (
+	github.com/DATA-DOG/go-sqlmock v1.5.2
 	github.com/ferdiebergado/goexpress v0.2.3
 	github.com/ferdiebergado/gopherkit v0.0.4
 	github.com/jackc/pgx/v5 v5.7.1

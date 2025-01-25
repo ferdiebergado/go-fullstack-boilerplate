@@ -27,42 +27,42 @@ func Run(ctx context.Context) error {
 	cfg := config.Load()
 
 	// Connect to the database.
-	conn, err := db.Connect(ctx, cfg.DB)
+	database, err := db.Connect(cfg.DB)
 	if err != nil {
 		return err
 	}
-
-	// WaitGroup to wait for all shutdown tasks to complete
-	var wg sync.WaitGroup
-	wg.Add(3)
 
 	// Register OS Signal Listener
 	dbSignalCtx, dbCancel := signal.NotifyContext(ctx, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 	defer dbCancel()
 
+	// WaitGroup to wait for all shutdown tasks to complete
+	var wg sync.WaitGroup
+
 	// Goroutine to handle database connection closure on signal
-	go db.WaitDisconnect(dbSignalCtx, &wg, conn)
+	wg.Add(1)
+	go db.WaitDisconnect(dbSignalCtx, &wg, database)
 
 	// Create the application
-	idleConnsClosed := make(chan struct{})
-	sessionManager := session.NewDatabaseSession(cfg.Session, conn)
+	sessionManager := session.NewDatabaseSession(cfg.Session, database)
 	htmlTemplate := html.NewTemplate(&cfg.HTML)
 	router := goexpress.New()
-	application := New(cfg, conn, router, htmlTemplate, sessionManager)
+	application := New(cfg, database, router, htmlTemplate, sessionManager)
 	application.SetupRouter()
 
 	// Start the httpServer
 	httpServer := server.New(&cfg.Server, router)
 
 	// Goroutine to handle server shutdown on signal
-	go httpServer.WaitForShutdown(&wg, idleConnsClosed)
+	wg.Add(1)
+	go httpServer.WaitForShutdown(&wg)
 
 	// Start the server
+	wg.Add(1)
 	go httpServer.Start()
 
 	// Block until both database and server shutdown are complete
-	<-idleConnsClosed // Wait for server to shut down
-	wg.Wait()         // Wait for all shutdown tasks (including database)
+	wg.Wait() // Wait for all shutdown tasks (including database)
 	slog.Info("All shutdown tasks completed. Exiting.")
 
 	return nil

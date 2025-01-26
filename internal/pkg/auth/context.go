@@ -15,11 +15,11 @@ func WithUser(ctx context.Context, userID string) context.Context {
 	return context.WithValue(ctx, userKey, userID)
 }
 
-func FromContext(ctx context.Context) (string, error) {
+func FromContext(ctx context.Context) *string {
 	userID, ok := ctx.Value(userKey).(string)
 	if !ok {
-		return "", ErrUserNotInContext
+		return nil
 	}
 
-	return userID, nil
+	return &userID
 }

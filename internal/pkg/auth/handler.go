@@ -4,7 +4,6 @@ import (
 	"errors"
 	"log/slog"
 	"net/http"
-	"time"
 
 	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/app/user"
 	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/config"
@@ -12,32 +11,31 @@ import (
 	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/http/html"
 	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/http/response"
 	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/http/session"
-	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/security"
 	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/validation"
 	"github.com/ferdiebergado/goexpress"
 	"github.com/ferdiebergado/gopherkit/http/request"
 )
 
 type Handler struct {
-	config         *config.Config
-	router         *goexpress.Router
-	service        Service
-	htmlTemplate   *html.Template
-	sessionManager session.Manager
+	config  *config.Config
+	router  *goexpress.Router
+	service Service
+	tmpl    *html.Template
+	sessMgr session.Manager
 }
 
-func NewHandler(cfg *config.Config, router *goexpress.Router, service Service, htmlTemplate *html.Template, sessMgr session.Manager) *Handler {
+func NewHandler(cfg *config.Config, router *goexpress.Router, service Service, tmpl *html.Template, sessMgr session.Manager) *Handler {
 	return &Handler{
-		config:         cfg,
-		router:         router,
-		service:        service,
-		htmlTemplate:   htmlTemplate,
-		sessionManager: sessMgr,
+		config:  cfg,
+		router:  router,
+		service: service,
+		tmpl:    tmpl,
+		sessMgr: sessMgr,
 	}
 }
 
 func (h *Handler) HandleSignUp(w http.ResponseWriter, _ *http.Request) {
-	h.htmlTemplate.Render(w, "signup.html", nil)
+	h.tmpl.Render(w, "signup.html", nil)
 }
 
 func (h *Handler) HandleSignUpForm(w http.ResponseWriter, r *http.Request) {
@@ -89,7 +87,7 @@ func (h *Handler) HandleSignUpForm(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) HandleSignin(w http.ResponseWriter, _ *http.Request) {
-	h.htmlTemplate.Render(w, "signin.html", nil)
+	h.tmpl.Render(w, "signin.html", nil)
 }
 
 func (h *Handler) HandleSignInForm(w http.ResponseWriter, r *http.Request) {
@@ -123,14 +121,44 @@ func (h *Handler) HandleSignInForm(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var redirectURL string
-
-	sessionData, err := h.sessionManager.LoadSession(r)
+	sessData, err := h.sessMgr.Get(r)
 
 	if err != nil {
+		serverError := errtypes.ServerError(err)
+		response.RenderError(w, r, serverError)
+		return
+	}
+
+	if sessData != nil {
+		if err := h.sessMgr.Destroy(r.Context(), sessData.ID()); err != nil {
+			serverError := errtypes.ServerError(err)
+			response.RenderError(w, r, serverError)
+			return
+		}
+	}
+
+	sess, err := h.sessMgr.Start(r)
+
+	if err != nil {
+		serverError := errtypes.ServerError(err)
+		response.RenderError(w, r, serverError)
+		return
+	}
+
+	var redirectURL string
+
+	if err := sess.SetUserID(userID); err != nil {
+		serverError := errtypes.ServerError(err)
+		response.RenderError(w, r, serverError)
+		return
+	}
+
+	intendedURL, ok := sess.Flash("intendedUrl").(string)
+
+	if !ok {
 		redirectURL = "/dashboard"
 	} else {
-		redirectURL = sessionData.Flash["intendedUrl"]
+		redirectURL = intendedURL
 	}
 
 	res := &response.APIResponse[map[string]string]{
@@ -140,52 +168,9 @@ func (h *Handler) HandleSignInForm(w http.ResponseWriter, r *http.Request) {
 		},
 	}
 
-	sid, err := security.GenerateRandomBytesEncoded(64)
-
-	if err != nil {
-		serverError := errtypes.ServerError(err)
-		response.RenderError(w, r, serverError)
-		return
-	}
-
-	data := session.Data{
-		UserID: userID,
-	}
-
-	if err := h.sessionManager.StoreSession(r.Context(), sid, data); err != nil {
-		response.RenderError(w, r, errtypes.ServerError(err))
-		return
-	}
-
-	http.SetCookie(w, &http.Cookie{
-		Name:     h.config.Session.SessionName,
-		Value:    sid,
-		Expires:  time.Now().Add(h.config.Session.SessionDuration),
-		HttpOnly: true,
-		SameSite: h.config.Session.SameSite,
-		Path:     "/",
-	})
-
-	csrf, err := security.GenerateRandomBytesEncoded(64)
-
-	if err != nil {
-		serverError := errtypes.ServerError(err)
-		response.RenderError(w, r, serverError)
-		return
-	}
-
-	http.SetCookie(w, &http.Cookie{
-		Name:     h.config.Session.CSRFName,
-		Value:    csrf,
-		Expires:  time.Now().Add(h.config.Session.SessionDuration),
-		HttpOnly: false,
-		SameSite: h.config.Session.SameSite,
-		Path:     "/",
-	})
-
 	response.RenderJSON(w, http.StatusOK, res)
 }
 
 func (h *Handler) HandleProfile(w http.ResponseWriter, _ *http.Request) {
-	h.htmlTemplate.Render(w, "profile.html", nil)
+	h.tmpl.Render(w, "profile.html", nil)
 }

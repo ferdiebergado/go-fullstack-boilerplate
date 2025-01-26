@@ -8,6 +8,8 @@ import (
 	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/app/user"
 	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/auth"
 	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/config"
+	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/errtypes"
+	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/validation"
 )
 
 type authenticator struct {
@@ -89,6 +91,24 @@ func TestServiceSignUpRepoError(t *testing.T) {
 	service := auth.NewAuthService(&config.Config{}, repo)
 
 	_, err := service.SignUp(context.Background(), signupParams)
+
+	if err == nil {
+		t.Error("expected an error but got nil")
+	}
+}
+
+func TestServiceSignUpInvalidParams(t *testing.T) {
+	repo := &authenticator{
+		SignUpFn: func(_ context.Context, _ auth.SignUpParams) (*user.User, error) {
+			return nil, errtypes.ValidationError(*validation.NewError())
+		},
+	}
+
+	service := auth.NewAuthService(&config.Config{}, repo)
+
+	_, err := service.SignUp(context.Background(), auth.SignUpParams{
+		Email: "abc@d",
+	})
 
 	if err == nil {
 		t.Error("expected an error but got nil")

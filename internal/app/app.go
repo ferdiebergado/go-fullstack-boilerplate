@@ -6,6 +6,7 @@ import (
 	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/auth"
 	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/config"
 	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/http/html"
+	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/http/middleware"
 	"github.com/ferdiebergado/go-fullstack-boilerplate/internal/pkg/http/session"
 	"github.com/ferdiebergado/goexpress"
 )
@@ -29,10 +30,10 @@ func New(cfg *config.Config, database *sql.DB, router *goexpress.Router, htmlTmp
 }
 
 func (a *App) registerGlobalMiddlewares() {
+	a.router.Use(middleware.RecoverFromPanic)
 	a.router.Use(goexpress.LogRequest)
 	a.router.Use(goexpress.StripTrailingSlashes)
-	a.router.Use(goexpress.Middleware(auth.SessionMiddleware(a.cfg.Session, a.sessionManager)))
-	a.router.Use(goexpress.RecoverFromPanic)
+	a.router.Use(goexpress.Middleware(auth.SessionMiddleware(a.sessionManager)))
 }
 
 func (a *App) AddBaseHandler() *BaseHandler {
